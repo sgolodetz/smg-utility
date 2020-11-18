@@ -39,16 +39,16 @@ class GeometryUtil:
         )
 
     @staticmethod
-    def make_depths_orthogonal(depths: np.ndarray, intrinsics: Tuple[float, float, float, float]) -> None:
+    def make_depths_orthogonal(depth_image: np.ndarray, intrinsics: Tuple[float, float, float, float]) -> None:
         """
         Convert the depth values in a depth image from Euclidean distances from the camera centre
         to orthogonal distances to the image plane.
 
-        :param depths:      The depth image.
+        :param depth_image: The depth image.
         :param intrinsics:  The depth camera intrinsics.
         """
         NumbaUtil.launch_kernel_2d(
-            GeometryUtil.__ck_make_depths_orthogonal, depths, *intrinsics, grid_size=depths.shape
+            GeometryUtil.__ck_make_depths_orthogonal, depth_image, *intrinsics, grid_size=depth_image.shape
         )
 
     @staticmethod
@@ -65,13 +65,13 @@ class GeometryUtil:
 
         :param depth_image:   The depth image whose pixels are to be back-projected to make the point cloud.
         :param colour_image:  The colour image to use to colourise the point cloud (assumed to be in BGR format).
-        # FIXME
-        :param mask:          A mask of the pixels to use for the point cloud (non-zero means include the pixel).
+        :param depth_mask:    A mask indicating which pixels have valid depths (non-zero means valid).
         :param intrinsics:    The camera intrinsics (assumed to be the same for both the colour/depth cameras).
         """
         # Create a camera-space points image for the frame by using the identity pose.
-        height, width = depth_mask.shape
+        height, width = depth_image.shape
         cs_points: np.ndarray = np.zeros((height, width, 3), dtype=np.float32)
+        # noinspection PyTypeChecker
         GeometryUtil.compute_world_points_image(depth_image, depth_mask, np.eye(4), *intrinsics, cs_points)
 
         # Allocate the output point cloud arrays.
@@ -130,7 +130,7 @@ class GeometryUtil:
 
     @staticmethod
     @cuda.jit
-    def __ck_make_depths_orthogonal(depths, fx: float, fy: float, cx: float, cy: float):
+    def __ck_make_depths_orthogonal(depth_image, fx: float, fy: float, cx: float, cy: float):
         """
         Convert the depth values in a depth image from Euclidean distances from the camera centre
         to orthogonal distances to the image plane.
@@ -138,25 +138,26 @@ class GeometryUtil:
         .. note::
             This CUDA kernel must be invoked using numba.
 
-        :param depths:  The depth image.
-        :param fx:      The horizontal focal length.
-        :param fy:      The vertical focal length.
-        :param cx:      The x component of the principal point.
-        :param cy:      The y component of the principal point.
+        :param depth_image: The depth image.
+        :param fx:          The horizontal focal length.
+        :param fy:          The vertical focal length.
+        :param cx:          The x component of the principal point.
+        :param cy:          The y component of the principal point.
         """
+        # noinspection PyArgumentList
         y, x = cuda.grid(2)
-        if y < depths.shape[0] and x < depths.shape[1]:
+        if y < depth_image.shape[0] and x < depth_image.shape[1]:
             # Compute the position (a,b,1)^T of the pixel on the image plane.
             a: float = (x - cx) / fx
             b: float = (y - cy) / fy
 
             # Compute the distance from the camera centre to the pixel, and then divide by it.
             dist_to_pixel = math.sqrt(a ** 2 + b ** 2 + 1 ** 2)
-            depths[y, x] /= dist_to_pixel
+            depth_image[y, x] /= dist_to_pixel
 
     @staticmethod
     @cuda.jit
-    def __ck_make_point_cloud(cs_points, colour_image, mask, pcd_points, pcd_colours):
+    def __ck_make_point_cloud(cs_points, colour_image, depth_mask, pcd_points, pcd_colours):
         """
         Make a colourised point cloud for visualisation purposes.
 
@@ -165,7 +166,7 @@ class GeometryUtil:
 
         :param cs_points:           The camera-space points.
         :param colour_image:        The image to use to colour the point cloud.
-        :param mask:                A mask of the pixels to use for the point cloud (non-zero means include the pixel).
+        :param depth_mask:          A mask indicating which pixels have valid depths (non-zero means valid).
         :param pcd_points:          The output points array.
         :param pcd_colours:         The output colours array.
         """
@@ -174,8 +175,8 @@ class GeometryUtil:
         if y >= cs_points.shape[0] or x >= cs_points.shape[1]:
             return
 
-        # If the pixel is being excluded, early out.
-        if mask[y, x] == 0:
+        # If the pixel's depth was invalid, so is its camera-space point, so early out.
+        if depth_mask[y, x] == 0:
             return
 
         # Get the camera-space point for the pixel.

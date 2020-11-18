@@ -8,7 +8,7 @@ setup(
     version="0.0.1",
     author="Stuart Golodetz",
     author_email="stuart.golodetz@cs.ox.ac.uk",
-    description="Useful helper library built on top of Open3D",
+    description="Utility functions related to geometry",
     long_description="",  #long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/sgolodetz/smg-geometry",
