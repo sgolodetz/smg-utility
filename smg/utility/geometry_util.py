@@ -8,8 +8,6 @@ from smg.utility.image_util import ImageUtil
 from smg.utility.numba_util import NumbaUtil
 
 
-# MAIN CLASS
-
 class GeometryUtil:
     """Utility functions related to geometry."""
 
