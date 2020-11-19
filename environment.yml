@@ -1,4 +1,4 @@
-name: smg-geometry
+name: smg-utility
 channels:
   - defaults
 dependencies:
@@ -14,4 +14,4 @@ dependencies:
     - llvmlite==0.34.0
     - numba==0.51.2
     - numpy==1.19.4
-prefix: C:\ProgramData\Anaconda3\envs\smg-geometry
+prefix: C:\ProgramData\Anaconda3\envs\smg-utility

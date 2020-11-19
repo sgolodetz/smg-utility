@@ -4,15 +4,15 @@ from setuptools import find_packages, setup
 #     long_description = fh.read()
 
 setup(
-    name="smg-geometry",
+    name="smg-utility",
     version="0.0.1",
     author="Stuart Golodetz",
     author_email="stuart.golodetz@cs.ox.ac.uk",
-    description="Utility functions related to geometry",
+    description="Various helper classes and functions",
     long_description="",  #long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/sgolodetz/smg-geometry",
-    packages=find_packages(include=["smg.geometry", "smg.geometry.*"]),
+    url="https://github.com/sgolodetz/smg-utility",
+    packages=find_packages(include=["smg.utility", "smg.utility.*"]),
     include_package_data=True,
     install_requires=[
         "numba",

@@ -4,14 +4,14 @@ import numpy as np
 from numba import cuda
 from typing import Tuple
 
-from smg.geometry.image_util import ImageUtil
-from smg.geometry.numba_util import NumbaUtil
+from smg.utility.image_util import ImageUtil
+from smg.utility.numba_util import NumbaUtil
 
 
 # MAIN CLASS
 
 class GeometryUtil:
-    """Utility functions for dealing with geometry."""
+    """Utility functions related to geometry."""
 
     # PUBLIC STATIC METHODS
 
