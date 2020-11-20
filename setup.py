@@ -16,7 +16,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "numba",
-        "numpy"
+        "numpy",
+        "opencv-contrib-python==3.4.2.16"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
