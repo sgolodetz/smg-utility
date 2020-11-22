@@ -18,6 +18,17 @@ class ImageUtil:
         return np.ascontiguousarray(img[:, :, [2, 1, 0]])
 
     @staticmethod
+    def load_depth_image(filename: str, *, depth_scale_factor: float = 1000.0) -> np.ndarray:
+        """
+        Load a depth image from disk.
+
+        :param filename:            The name of the file from which to load it.
+        :param depth_scale_factor:  The factor by which the depths were scaled when they were saved.
+        :return:                    The loaded depth image.
+        """
+        return cv2.imread(filename, cv2.IMREAD_UNCHANGED) / depth_scale_factor
+
+    @staticmethod
     def save_depth_image(filename: str, depth_image: np.ndarray, *, depth_scale_factor: float = 1000) -> None:
         """
         Save a depth image to disk.
