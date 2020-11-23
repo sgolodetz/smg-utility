@@ -1,10 +1,34 @@
+import itertools
 import numpy as np
+
+from typing import List
 
 
 class PoseUtil:
     """Utility functions relating to poses."""
 
     # PUBLIC STATIC METHODS
+
+    @staticmethod
+    def load_pose(filename: str) -> np.ndarray:
+        """
+        Load a 4x4 pose matrix from the specified file.
+
+        :param filename:    The name of the pose file.
+        :return:            The 4x4 pose matrix.
+        """
+        with open(filename, "r") as file:
+            data: List[str] = file.read().split()
+
+        if len(data) != 16:
+            raise Exception('Cannot parse pose in "{}".'.format(filename))
+
+        pose: np.ndarray = np.eye(4, dtype=np.float32)
+
+        for y, x in itertools.product(range(3), range(4)):
+            pose[y, x] = float(data[y * 4 + x])
+
+        return pose
 
     @staticmethod
     def save_pose(pose_filename: str, pose: np.ndarray) -> None:
