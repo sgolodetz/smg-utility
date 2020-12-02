@@ -157,18 +157,21 @@ class PooledQueue(Generic[T]):
             for i in range(capacity):
                 self.__pool.append(maker())
 
-    def peek(self) -> T:
+    def peek(self, stop_waiting: Optional[threading.Event] = None) -> T:
         """
-        Get the first element in the queue.
+        Try to get the first element in the queue.
 
         .. note::
-            This will block until the queue is non-empty.
+            This will block until the queue is non-empty, but can still return None if the stop waiting event occurs.
 
-        :return:    The first element in the queue.
+        :param stop_waiting:    An optional event that can be used to make the peek operation stop waiting if needed.
+        :return:                The first element in the queue, if possible, or None if the stop waiting event occurs.
         """
         with self.__lock:
             while len(self.__queue) == 0:
                 self.__queue_non_empty.wait(0.1)
+                if stop_waiting is not None and stop_waiting.is_set():
+                    return None
             return self.__queue[0]
 
     def pop(self) -> None:
