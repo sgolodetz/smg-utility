@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import collections
-import pytypes
 import random
 import threading
 
 from typing import Callable, Deque, Generic, Optional, TypeVar
+
+from .type_util import TypeUtil
 
 
 # TYPE VARIABLE
@@ -150,8 +151,7 @@ class PooledQueue(Generic[T]):
         """
         with self.__lock:
             if maker is None:
-                # TODO: This should be moved somewhere more central.
-                maker = pytypes.type_util.get_orig_class(self).__args__[0]
+                maker = TypeUtil.get_type_variable(self)
 
             self.__maker = maker
             for i in range(capacity):

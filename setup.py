@@ -17,7 +17,8 @@ setup(
     install_requires=[
         "numba",
         "numpy",
-        "opencv-contrib-python==3.4.2.16"
+        "opencv-contrib-python==3.4.2.16",
+        "pytypes @ git+https://github.com/sgolodetz/pytypes.git"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
