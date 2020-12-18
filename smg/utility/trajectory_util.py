@@ -1,10 +1,7 @@
-import math
 import numpy as np
 
 from scipy.spatial.transform import Rotation
 from typing import List, Tuple
-
-# from smg.utility.geometry_util import GeometryUtil
 
 
 class TrajectoryUtil:
@@ -41,7 +38,7 @@ class TrajectoryUtil:
         return result
 
     @staticmethod
-    def smooth_trajectory(trajectory: List[Tuple[float, np.ndarray]], *, neighbourhood_size: int = 35) \
+    def smooth_trajectory(trajectory: List[Tuple[float, np.ndarray]], *, neighbourhood_size: int = 25) \
             -> List[Tuple[float, np.ndarray]]:
         """
         Smooth a trajectory using Laplacian smoothing.
@@ -52,31 +49,25 @@ class TrajectoryUtil:
         """
         half_neighbourhood_size: int = neighbourhood_size // 2
         new_trajectory: List[Tuple[float, np.ndarray]] = []
+
         for i in range(len(trajectory)):
             low: int = max(i - half_neighbourhood_size, 0)
             high: int = min(i + half_neighbourhood_size, len(trajectory) - 1)
+
             t: np.ndarray = np.zeros(3)
+
             for j in range(low, high + 1):
                 _, pose_j = trajectory[j]
                 t += pose_j[0:3, 3]
+
+            t /= (high + 1 - low)
+
             timestamp_i, pose_i = trajectory[i]
             new_pose_i: np.ndarray = pose_i.copy()
-            new_pose_i[0:3, 3] = t / (high + 1 - low)
+            new_pose_i[0:3, 3] = t
             new_trajectory.append((timestamp_i, new_pose_i))
-        return new_trajectory
 
-    # @staticmethod
-    # def transform_trajectory(trajectory: np.ndarray, *, pre: np.ndarray = np.eye(4), post: np.ndarray = np.eye(4)) \
-    #         -> None:
-    #     """
-    #     Apply the specified rigid-body transforms to each pose in a trajectory (in-place).
-    #
-    #     :param trajectory:  The trajectory whose poses should be transformed.
-    #     :param pre:         The rigid-body transform with which to pre-multiply each pose (expressed as a 4*4 matrix).
-    #     :param post:        The rigid-body transform with which to post-multiply each pose (expressed as a 4*4 matrix).
-    #     """
-    #     for frame_idx in range(trajectory.shape[0]):
-    #         trajectory[frame_idx] = GeometryUtil.to_3x4(pre @ GeometryUtil.to_4x4(trajectory[frame_idx]) @ post)
+        return new_trajectory
 
     @staticmethod
     def write_tum_pose(f, timestamp: float, pose: np.ndarray) -> None:
