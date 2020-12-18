@@ -1,3 +1,4 @@
+import math
 import numpy as np
 
 from scipy.spatial.transform import Rotation
@@ -39,71 +40,31 @@ class TrajectoryUtil:
 
         return result
 
-    # @staticmethod
-    # def load_trajectory(filename: str, *, canonicalise_poses: bool = False) -> np.ndarray:
-    #     """
-    #     Load a KITTI or TUM trajectory from a file.
-    #
-    #     :param filename:            The name of the file containing the trajectory.
-    #     :param canonicalise_poses:  Whether or not to canonicalise the poses in the trajectory (i.e. transform each
-    #                                 pose by the inverse of the first pose in the trajectory to ensure that the new
-    #                                 first pose is the identity).
-    #     :return:                    The trajectory (as an n*3*4 numpy array, where n is the sequence length).
-    #     """
-    #     # Read in all of the lines in the file.
-    #     with open(filename, "r") as f:
-    #         lines = f.read().split("\n")
-    #
-    #     # Convert the lines into an n*m float array, where n is the sequence length and m is the number of elements
-    #     # in each line. The file will either be in KITTI format, in which case each line will contain a 3*4 rigid body
-    #     # transform (in row major order), and m will be 12, or it will be in TUM format, in which case each line will
-    #     # contain a timestamp, translation vector and quaternion, and be of the form "timestamp tx ty tz qx qy qz qw",
-    #     # and m will be 8.
-    #     transforms: np.ndarray = np.array([list(map(float, line.split(" "))) for line in lines if line])
-    #
-    #     # noinspection PyUnusedLocal
-    #     new_transforms: np.ndarray
-    #
-    #     if transforms.shape[1] == 12:
-    #         # If the file was in KITTI format, the n*12 array can simply be reshaped to n*3*4.
-    #         new_transforms = transforms.reshape((-1, 3, 4))
-    #     else:
-    #         # If the file was in TUM format, we need to determine the 3*4 matrix manually for each frame.
-    #         new_transforms = np.zeros((transforms.shape[0], 3, 4))
-    #         for frame_idx, transform in enumerate(transforms):
-    #             new_transforms[frame_idx] = np.eye(4)[0:3, :]
-    #             new_transforms[frame_idx, 0:3, 3] = transform[1:4]
-    #             r: Rotation = Rotation.from_quat(transform[4:])
-    #             new_transforms[frame_idx, 0:3, 0:3] = r.as_matrix()
-    #
-    #     if canonicalise_poses:
-    #         TrajectoryUtil.transform_trajectory(
-    #             new_transforms, pre=np.linalg.inv(GeometryUtil.to_4x4(new_transforms[0]))
-    #         )
-    #
-    #     return new_transforms
-    #
-    # @staticmethod
-    # def load_tum_timestamps(filename: str) -> List[float]:
-    #     """
-    #     Load the frame timestamps for a TUM trajectory from a file.
-    #
-    #     :param filename:    The name of the file containing the trajectory.
-    #     :return:            The frame timestamps for the trajectory.
-    #     """
-    #     # Read in all of the lines in the file.
-    #     with open(filename, "r") as f:
-    #         lines = f.read().split("\n")
-    #
-    #     # Make a list of the timestamps and return them.
-    #     timestamps: List[float] = []
-    #     for line in lines:
-    #         if line:
-    #             timestamp: float = float(line.split(" ")[0])
-    #             timestamps.append(timestamp)
-    #
-    #     return timestamps
-    #
+    @staticmethod
+    def smooth_trajectory(trajectory: List[Tuple[float, np.ndarray]], *, neighbourhood_size: int = 35) \
+            -> List[Tuple[float, np.ndarray]]:
+        """
+        Smooth a trajectory using Laplacian smoothing.
+
+        :param trajectory:          The trajectory to smooth.
+        :param neighbourhood_size:  The neighbourhood size for the Laplacian smoothing.
+        :return:                    The smoothed trajectory.
+        """
+        half_neighbourhood_size: int = neighbourhood_size // 2
+        new_trajectory: List[Tuple[float, np.ndarray]] = []
+        for i in range(len(trajectory)):
+            low: int = max(i - half_neighbourhood_size, 0)
+            high: int = min(i + half_neighbourhood_size, len(trajectory) - 1)
+            t: np.ndarray = np.zeros(3)
+            for j in range(low, high + 1):
+                _, pose_j = trajectory[j]
+                t += pose_j[0:3, 3]
+            timestamp_i, pose_i = trajectory[i]
+            new_pose_i: np.ndarray = pose_i.copy()
+            new_pose_i[0:3, 3] = t / (high + 1 - low)
+            new_trajectory.append((timestamp_i, new_pose_i))
+        return new_trajectory
+
     # @staticmethod
     # def transform_trajectory(trajectory: np.ndarray, *, pre: np.ndarray = np.eye(4), post: np.ndarray = np.eye(4)) \
     #         -> None:
