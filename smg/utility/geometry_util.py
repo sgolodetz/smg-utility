@@ -84,28 +84,6 @@ class GeometryUtil:
 
         return pcd_points, pcd_colours
 
-    @staticmethod
-    def to_3x4(mat4x4: np.ndarray) -> np.ndarray:
-        """
-        Convert a 4*4 matrix representation of a rigid-body transform to its 3*4 equivalent.
-
-        :param mat4x4:  The 4*4 matrix representation of the rigid-body transform.
-        :return:        The 3*4 matrix representation of the rigid-body transform.
-        """
-        return mat4x4[0:3, :]
-
-    @staticmethod
-    def to_4x4(mat3x4: np.ndarray) -> np.ndarray:
-        """
-        Convert a 3*4 matrix representation of a rigid-body transform to its 4*4 equivalent.
-
-        :param mat3x4:  The 3*4 matrix representation of the rigid-body transform.
-        :return:        The 4*4 matrix representation of the rigid-body transform.
-        """
-        mat4x4: np.ndarray = np.eye(4)
-        mat4x4[0:3, :] = mat3x4
-        return mat4x4
-
     # PRIVATE STATIC CUDA KERNELS
 
     @staticmethod
