@@ -4,8 +4,8 @@ import numpy as np
 from numba import cuda
 from typing import Tuple
 
-from smg.utility.image_util import ImageUtil
-from smg.utility.numba_util import NumbaUtil
+from .image_util import ImageUtil
+from .numba_util import NumbaUtil
 
 
 class GeometryUtil:
