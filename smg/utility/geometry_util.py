@@ -1,8 +1,9 @@
 import math
 import numpy as np
 
+from itertools import product
 from numba import cuda
-from typing import Tuple
+from typing import Dict, List, Tuple
 
 from .image_util import ImageUtil
 from .numba_util import NumbaUtil
@@ -83,6 +84,36 @@ class GeometryUtil:
         )
 
         return pcd_points, pcd_colours
+
+    @staticmethod
+    def make_voxel_grid_endpoints(mins: List[float], maxs: List[float], voxel_size: List[float]) -> \
+            Tuple[List[Tuple[float, float, float]], List[Tuple[float, float, float]]]:
+        """
+        Make the endpoints of the lines needed for a wireframe voxel grid.
+
+        :param mins:        The minimum bounds of the voxel grid.
+        :param maxs:        The maximum bounds of the voxel grid.
+        :param voxel_size:  The voxel size.
+        :return:            The endpoints of the lines needed for the voxel grid.
+        """
+        vals: Dict[int, np.ndarray] = {}
+        for i in range(3):
+            maxs[i] = mins[i] + math.ceil((maxs[i] - mins[i]) / voxel_size[i]) * voxel_size[i]
+            vals[i] = np.linspace(mins[i], maxs[i], int((maxs[i] - mins[i]) / voxel_size[i]) + 1)
+
+        xpts1: List[Tuple[float, float, float]] = [(mins[0], y, z) for y, z in product(vals[1], vals[2])]
+        xpts2: List[Tuple[float, float, float]] = [(maxs[0], y, z) for y, z in product(vals[1], vals[2])]
+
+        ypts1: List[Tuple[float, float, float]] = [(x, mins[1], z) for x, z in product(vals[0], vals[2])]
+        ypts2: List[Tuple[float, float, float]] = [(x, maxs[1], z) for x, z in product(vals[0], vals[2])]
+
+        zpts1: List[Tuple[float, float, float]] = [(x, y, mins[2]) for x, y in product(vals[0], vals[1])]
+        zpts2: List[Tuple[float, float, float]] = [(x, y, maxs[2]) for x, y in product(vals[0], vals[1])]
+
+        pts1: List[Tuple[float, float, float]] = xpts1 + ypts1 + zpts1
+        pts2: List[Tuple[float, float, float]] = xpts2 + ypts2 + zpts2
+
+        return pts1, pts2
 
     # PRIVATE STATIC CUDA KERNELS
 
