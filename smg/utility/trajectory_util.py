@@ -3,6 +3,8 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from typing import List, Tuple
 
+from .trajectory_smoother import TrajectorySmoother
+
 
 class TrajectoryUtil:
     """Utility functions related to trajectories."""
@@ -47,27 +49,10 @@ class TrajectoryUtil:
         :param neighbourhood_size:  The neighbourhood size for the Laplacian smoothing.
         :return:                    The smoothed trajectory.
         """
-        half_neighbourhood_size: int = neighbourhood_size // 2
-        new_trajectory: List[Tuple[float, np.ndarray]] = []
-
-        for i in range(len(trajectory)):
-            low: int = max(i - half_neighbourhood_size, 0)
-            high: int = min(i + half_neighbourhood_size, len(trajectory) - 1)
-
-            t: np.ndarray = np.zeros(3)
-
-            for j in range(low, high + 1):
-                _, pose_j = trajectory[j]
-                t += pose_j[0:3, 3]
-
-            t /= (high + 1 - low)
-
-            timestamp_i, pose_i = trajectory[i]
-            new_pose_i: np.ndarray = pose_i.copy()
-            new_pose_i[0:3, 3] = t
-            new_trajectory.append((timestamp_i, new_pose_i))
-
-        return new_trajectory
+        smoother: TrajectorySmoother = TrajectorySmoother(neighbourhood_size=neighbourhood_size)
+        for timestamp, pose in trajectory:
+            smoother.append(timestamp, pose)
+        return smoother.get_smoothed_trajectory()
 
     @staticmethod
     def write_tum_pose(f, timestamp: float, pose: np.ndarray) -> None:
