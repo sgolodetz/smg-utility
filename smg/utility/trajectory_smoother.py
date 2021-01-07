@@ -14,7 +14,8 @@ class TrajectorySmoother:
 
         :param neighbourhood_size:  The neighbourhood size for the Laplacian smoothing.
         """
-        self.__half_neighbourhood_size: Optional[int] = neighbourhood_size // 2
+        self.__half_neighbourhood_size: Optional[int] = neighbourhood_size // 2 \
+            if neighbourhood_size is not None else None
         self.__raw_trajectory: List[Tuple[float, np.ndarray]] = []
         self.__smoothed_trajectory: List[Tuple[float, np.ndarray]] = []
 
@@ -30,24 +31,29 @@ class TrajectorySmoother:
         # Append the timestamped pose to the raw trajectory.
         self.__raw_trajectory.append((timestamp, pose))
 
-        # If possible, smooth an earlier timestamped pose and append it to the smoothed trajectory.
-        high: int = len(self.__raw_trajectory) - 1
-        i: int = high - self.__half_neighbourhood_size
-        low: int = i - self.__half_neighbourhood_size
+        # If a neighbourhood size was specified (and therefore smoothing is enabled):
+        if self.__half_neighbourhood_size is not None:
+            # If possible, smooth an earlier timestamped pose and append it to the smoothed trajectory.
+            high: int = len(self.__raw_trajectory) - 1
+            i: int = high - self.__half_neighbourhood_size
+            low: int = i - self.__half_neighbourhood_size
 
-        if low >= 0:
-            t: np.ndarray = np.zeros(3)
+            if low >= 0:
+                t: np.ndarray = np.zeros(3)
 
-            for j in range(low, high + 1):
-                _, pose_j = self.__raw_trajectory[j]
-                t += pose_j[0:3, 3]
+                for j in range(low, high + 1):
+                    _, pose_j = self.__raw_trajectory[j]
+                    t += pose_j[0:3, 3]
 
-            t /= (high + 1 - low)
+                t /= (high + 1 - low)
 
-            timestamp_i, pose_i = self.__raw_trajectory[i]
-            smoothed_pose_i: np.ndarray = pose_i.copy()
-            smoothed_pose_i[0:3, 3] = t
-            self.__smoothed_trajectory.append((timestamp_i, smoothed_pose_i))
+                timestamp_i, pose_i = self.__raw_trajectory[i]
+                smoothed_pose_i: np.ndarray = pose_i.copy()
+                smoothed_pose_i[0:3, 3] = t
+                self.__smoothed_trajectory.append((timestamp_i, smoothed_pose_i))
+        else:
+            # If smoothing is not in use, simply append the raw pose to the smoothed trajectory.
+            self.__smoothed_trajectory.append((timestamp, pose))
 
     def get_raw_trajectory(self) -> List[Tuple[float, np.ndarray]]:
         """
