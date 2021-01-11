@@ -3,7 +3,7 @@ import numpy as np
 
 from itertools import product
 from numba import cuda
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from .image_util import ImageUtil
 from .numba_util import NumbaUtil
@@ -61,6 +61,71 @@ class GeometryUtil:
         bl = np.transpose(np.tile((yl - cy) / fy, width).reshape(width, height)) * depth_image
         for i in range(3):
             ws_points[:, :, i] = pose[i, 0] * al + pose[i, 1] * bl + pose[i, 2] * depth_image
+
+    @staticmethod
+    def find_reprojection_correspondences(
+        source_depth_image: np.ndarray, world_from_source: np.ndarray, world_from_target: np.ndarray,
+        source_intrinsics: Tuple[float, float, float, float], *,
+        target_image_size: Optional[Tuple[int, int]] = None,
+        target_intrinsics: Optional[Tuple[float, float, float, float]] = None
+    ) -> np.ndarray:
+        """
+        Make a reprojection correspondence image by back-projecting the pixels in a source depth image,
+        transforming them into the camera space of a target image, and reprojecting them into that image.
+
+        .. note::
+            The reprojection correspondence image contains a tuple (x',y') for each source pixel (x,y) that denotes
+            the target pixel corresponding to it. If a source pixel does not have a valid reprojection correspondence,
+            (-1,-1) will be stored for it.
+        .. note::
+            There are two reasons why a source pixel might not have a valid reprojection correspondence:
+             (i) Its depth is 0, so it can't be back-projected.
+            (ii) It has a correspondence that's in the target image plane, but not within the target image bounds.
+
+        :param source_depth_image:  The source depth image.
+        :param world_from_source:   A transformation from source camera space to world space.
+        :param world_from_target:   A transformation from target camera space to world space.
+        :param source_intrinsics:   The source camera intrinsics.
+        :param target_image_size:   The target image size, if not the same as the source image size.
+        :param target_intrinsics:   The target camera intrinsics, if not the same as the source camera intrinsics.
+        :return:                    The reprojection correspondence image.
+        """
+        # Back-project the points from the source depth image and transform them into the camera space
+        # of the target image so that they can be reprojected down onto that image.
+        source_height, source_width = source_depth_image.shape
+        target_points: np.ndarray = np.zeros((source_height, source_width, 3), dtype=float)
+        target_from_source: np.ndarray = np.linalg.inv(world_from_target) @ world_from_source
+        GeometryUtil.compute_world_points_image_fast(
+            source_depth_image, target_from_source, source_intrinsics, target_points
+        )
+
+        # Reproject the points down onto the target image to find the correspondences. For each point, the relevant
+        # equations are x = fx * X / Z + cx and y = fy * Y / Z + cy. Note that Z can be 0 for a particular pixel,
+        # which is difficult to deal with in a vectorised operation. However, numpy will simply yield a NaN if we
+        # divide by zero, and we can suppress the warnings that are produced, so that's good enough. Note that if
+        # we then convert one of the NaNs to an int, we get INT_MIN in practice.
+        if target_intrinsics is None:
+            target_intrinsics = source_intrinsics
+        fx, fy, cx, cy = target_intrinsics
+        correspondence_image: np.ndarray = np.zeros((source_height, source_width, 2), dtype=int)
+        np.seterr(divide="ignore", invalid="ignore")
+        xs = np.round(fx * target_points[:, :, 0] / target_points[:, :, 2] + cx).astype(int)
+        ys = np.round(fy * target_points[:, :, 1] / target_points[:, :, 2] + cy).astype(int)
+        np.seterr(divide="warn", invalid="warn")
+        correspondence_image[:, :, 0] = xs
+        correspondence_image[:, :, 1] = ys
+
+        # Replace any correspondences that are not within the image bounds with (-1, -1). Note that this will also
+        # filter out points that had a Z of 0, since (-INT_MIN, -INT_MIN) is definitely outside the image bounds.
+        if target_image_size is None:
+            target_image_size = (source_height, source_width)
+        target_height, target_width = target_image_size
+        correspondence_image = np.where(np.atleast_3d(0 <= xs), correspondence_image, -1)
+        correspondence_image = np.where(np.atleast_3d(xs < target_width), correspondence_image, -1)
+        correspondence_image = np.where(np.atleast_3d(0 <= ys), correspondence_image, -1)
+        correspondence_image = np.where(np.atleast_3d(ys < target_height), correspondence_image, -1)
+
+        return correspondence_image
 
     @staticmethod
     def make_depths_orthogonal(depth_image: np.ndarray, intrinsics: Tuple[float, float, float, float]) -> None:
@@ -139,6 +204,38 @@ class GeometryUtil:
         pts2: List[Tuple[float, float, float]] = xpts2 + ypts2 + zpts2
 
         return pts1, pts2
+
+    @staticmethod
+    def select_pixels_from(target_image: np.ndarray, selection_image: np.ndarray, *, invalid_value=0) -> np.ndarray:
+        """
+        Select pixels from a target image based on a selection image.
+
+        .. note::
+            Each pixel in the selection image contains a tuple (x,y) denoting a pixel that should be selected
+            from the target image. Note that (-1,-1) can be used to denote an invalid pixel, i.e. one for which
+            we do not want to select a target pixel).
+        .. note::
+            The output image will be the same size as the selection image.
+
+        :param target_image:    The target image.
+        :param selection_image: The selection image.
+        :param invalid_value:   The value to store in the output image for invalid pixels.
+        :return:                The output image.
+        """
+        # Copy the corresponding pixels from the target image into the output image. Note that the correspondence
+        # image contains (-1, -1) for pixels without a valid correspondence, so we can safely index the target
+        # with this, but we need to then filter out those pixels after the fact.
+        output_image: np.ndarray = target_image[selection_image[:, :, 1], selection_image[:, :, 0]]
+
+        # Filter out the invalid pixels. Different implementations are needed depending on the number of channels.
+        if len(output_image.shape) > 2 and output_image.shape[2] == 3:
+            for i in range(2):
+                output_image = np.where(np.atleast_3d(selection_image[:, :, i] >= 0), output_image, invalid_value)
+        else:
+            for i in range(2):
+                output_image = np.where(selection_image[:, :, i] >= 0, output_image, invalid_value)
+
+        return output_image
 
     # PRIVATE STATIC CUDA KERNELS
 
