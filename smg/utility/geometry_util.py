@@ -221,6 +221,21 @@ class GeometryUtil:
         return pts1, pts2
 
     @staticmethod
+    def rescale_intrinsics(old_intrinsics: Tuple[float, float, float, float], old_image_size: Tuple[int, int],
+                           new_image_size: Tuple[int, int]):
+        """
+        Rescale a set of camera intrinsics to allow them to be used with a different window size.
+
+        :param old_intrinsics:  The old camera intrinsics, as an (fx, fy, cx, cy) tuple.
+        :param old_image_size:  The old window size.
+        :param new_image_size:  The new window size.
+        :return:                The new camera intrinsics.
+        """
+        fx, fy, cx, cy = old_intrinsics
+        fractions: Tuple[float, float] = (new_image_size[0] / old_image_size[0], new_image_size[1] / old_image_size[1])
+        return fx * fractions[0], fy * fractions[1], cx * fractions[0], cy * fractions[1]
+
+    @staticmethod
     def select_pixels_from(target_image: np.ndarray, selection_image: np.ndarray, *, invalid_value=0) -> np.ndarray:
         """
         Select pixels from a target image based on a selection image.
