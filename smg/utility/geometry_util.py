@@ -143,6 +143,16 @@ class GeometryUtil:
         ])
 
     @staticmethod
+    def intrinsics_to_tuple(intrinsics: np.ndarray) -> Tuple[float, float, float, float]:
+        """
+        Convert camera intrinsics expressed as a 3x3 matrix form to an (fx,fy,cx,cy) tuple.
+
+        :param intrinsics:  The camera intrinsics in matrix form.
+        :return:            The camera intrinsics in tuple form.
+        """
+        return intrinsics[0][0], intrinsics[1][1], intrinsics[0][2], intrinsics[1][2]
+
+    @staticmethod
     def make_depths_orthogonal(depth_image: np.ndarray, intrinsics: Tuple[float, float, float, float]) -> None:
         """
         Convert the depth values in a depth image from Euclidean distances from the camera centre
