@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 
 from typing import Any, Dict, Optional, Tuple
 
@@ -17,14 +18,14 @@ class CameraParameters:
     # PUBLIC STATIC METHODS
 
     @staticmethod
-    def load(filename: str) -> CameraParameters:
+    def try_load(filename: str) -> Optional[CameraParameters]:
         """
-        Load a set of camera parameters from a JSON file.
+        Try to load a set of camera parameters from a JSON file.
 
         :param filename:    The name of the file.
-        :return:            The loaded camera parameters.
+        :return:            The loaded camera parameters, if loading was successful, or None otherwise.
         """
-        return CameraParameters().__load(filename)
+        return CameraParameters().__try_load(filename)
 
     # PUBLIC METHODS
 
@@ -92,14 +93,17 @@ class CameraParameters:
 
     # PRIVATE METHODS
 
-    def __load(self, filename: str) -> CameraParameters:
+    def __try_load(self, filename: str) -> Optional[CameraParameters]:
         """
-        Load a set of camera parameters from a JSON file.
+        Try to load a set of camera parameters from a JSON file.
 
         :param filename:    The name of the file.
-        :return:            The current object.
+        :return:            The current object, if loading was successful, or None otherwise.
         """
-        with open(filename, "r") as f:
-            self.__data = json.load(f)
+        if os.path.exists(filename):
+            with open(filename, "r") as f:
+                self.__data = json.load(f)
 
-        return self
+            return self
+        else:
+            return None
