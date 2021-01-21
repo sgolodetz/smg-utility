@@ -23,7 +23,25 @@ class PooledQueue(Generic[T]):
 
     class EPoolEmptyStrategy(int):
         """Used to specify what should happen when a push is attempted on a pooled queue with an empty pool."""
-        pass
+
+        # PUBLIC STATIC METHODS
+
+        @staticmethod
+        def make(name: str) -> PooledQueue.EPoolEmptyStrategy:
+            """
+            Make a pool empty strategy from its name.
+
+            :param name:    The name of the pool empty strategy.
+            :return:        The pool empty strategy.
+            """
+            if name == "discard":
+                return PooledQueue.PES_DISCARD
+            elif name == "grow":
+                return PooledQueue.PES_GROW
+            elif name == "replace_random":
+                return PooledQueue.PES_REPLACE_RANDOM
+            elif name == "wait":
+                return PooledQueue.PES_WAIT
 
     # Discard the new element.
     PES_DISCARD: EPoolEmptyStrategy = 0
