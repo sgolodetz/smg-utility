@@ -63,6 +63,62 @@ class GeometryUtil:
             ws_points[:, :, i] = pose[i, 0] * al + pose[i, 1] * bl + pose[i, 2] * depth_image
 
     @staticmethod
+    def estimate_rigid_transform(p: np.ndarray, q: np.ndarray) -> np.ndarray:
+        """
+        Estimate the rigid body transform between two sets of corresponding 3D points (using the Kabsch algorithm).
+
+        .. note::
+            This function was adapted from SemanticPaint: for academic/non-commercial use only.
+
+        :param p:   The first set of 3D points.
+        :param q:   The second set of 3D points.
+        :return:    The estimated rigid body transform between the two sets of points.
+        """
+        # Step 1: Count the correspondences.
+        n: int = p.shape[1]
+
+        # Step 2: Compute the centroids of the two sets of points. For n = 3:
+        #
+        # centroid = (x1 x2 x3) * (1/3) = ((x1 + x2 + x3) / 3) = (cx)
+        #            (y1 y2 y3) * (1/3) = ((y1 + y2 + y3) / 3) = (cy)
+        #            (z1 z2 z3) * (1/3) = ((z1 + z2 + z3) / 3) = (cz)
+        nths: np.ndarray = np.full((n, 1), 1 / n)
+        centroid_p: np.ndarray = p.dot(nths)
+        centroid_q: np.ndarray = q.dot(nths)
+
+        # Step 3: Translate the points in each set so that their centroid coincides with the origin
+        #         of the coordinate system. To do this, we subtract the centroid from each point.
+        #
+        # centred = (x1 x2 x3) - (cx) * (1 1 1) = (x1 x2 x3) - (cx cx cx) = (x1-cx x2-cx x3-cx)
+        #           (y1 y2 y3)   (cy)             (y1 y2 y3)   (cy cy cy)   (y1-cy y2-cy y3-cy)
+        #           (z1 z2 z3)   (cz)             (z1 z2 z3)   (cz cz cz)   (z1-cz z2-cz z3-cz)
+        ones_t: np.ndarray = np.ones((1, n))
+        centred_p: np.ndarray = p - centroid_p.dot(ones_t)
+        centred_q: np.ndarray = q - centroid_q.dot(ones_t)
+
+        # Step 4: Compute the cross-covariance between the two matrices of centred points.
+        a: np.ndarray = centred_p.dot(centred_q.transpose())
+
+        # Step 5: Calculate the SVD of the cross-covariance matrix: a = v * s * w^T.
+        v, s, w_t = np.linalg.svd(a, full_matrices=True)
+        w = w_t.transpose()
+
+        # Step 6: Decide whether or not we need to correct our rotation matrix, and set the i matrix accordingly.
+        i = np.eye(3)
+        if np.linalg.det(np.dot(v, w).transpose()) < 0:
+            i[2, 2] = -1
+
+        # Step 7: Recover the rotation and translation estimates.
+        r = w.dot(i).dot(v.transpose())
+        t = centroid_q - r.dot(centroid_p)
+
+        # Step 8: Combine the estimates into a 4x4 homogeneous transformation, and return it.
+        m: np.ndarray = np.eye(4)
+        m[0:3, 0:3] = r
+        m[0:3, 3] = np.transpose(t)
+        return m
+
+    @staticmethod
     def find_reprojection_correspondences(
         source_depth_image: np.ndarray, world_from_source: np.ndarray, world_from_target: np.ndarray,
         source_intrinsics: Tuple[float, float, float, float], *,
