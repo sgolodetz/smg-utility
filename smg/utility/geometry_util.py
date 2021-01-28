@@ -233,8 +233,8 @@ class GeometryUtil:
             invalid points to the camera origin and white, respectively. This won't affect anything because there
             aren't any other points closer than the near plane of the camera.
 
-        :param depth_image:   The depth image whose pixels are to be back-projected to make the point cloud.
         :param colour_image:  The colour image to use to colourise the point cloud (assumed to be in BGR format).
+        :param depth_image:   The depth image whose pixels are to be back-projected to make the point cloud.
         :param depth_mask:    A mask indicating which pixels have valid depths (non-zero means valid).
         :param intrinsics:    The camera intrinsics (assumed to be the same for both the colour/depth cameras).
         """
