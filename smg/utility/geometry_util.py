@@ -39,21 +39,21 @@ class GeometryUtil:
 
     @staticmethod
     def compute_world_points_image_fast(depth_image: np.ndarray, pose: np.ndarray,
-                                        intrinsics: Tuple[float, float, float, float],
-                                        ws_points: np.ndarray) -> None:
+                                        intrinsics: Tuple[float, float, float, float]) -> np.ndarray:
         """
         Compute a world-space points image from a depth image, camera pose, and set of camera intrinsics.
 
         .. note::
             The origin, i.e. (0, 0, 0), is stored for pixels whose depth is zero.
 
-        :param depth_image:     The depth image (pixels with zero depth are treated as invalid).
-        :param pose:            The camera pose (denoting a transformation from camera space to world space).
-        :param intrinsics:      The camera intrinsics, as an (fx, fy, cx, cy) tuple.
-        :param ws_points:       The output world-space points image.
+        :param depth_image: The depth image (pixels with zero depth are treated as invalid).
+        :param pose:        The camera pose (denoting a transformation from camera space to world space).
+        :param intrinsics:  The camera intrinsics, as an (fx, fy, cx, cy) tuple.
+        :return:            The world-space points image.
         """
         # TODO: This should ultimately replace the compute_world_points_image function above.
         height, width = depth_image.shape
+        ws_points: np.ndarray = np.zeros((height, width, 3), dtype=float)
         fx, fy, cx, cy = intrinsics
         xl = np.array(range(width))
         yl = np.array(range(height))
@@ -61,6 +61,7 @@ class GeometryUtil:
         bl = np.transpose(np.tile((yl - cy) / fy, width).reshape(width, height)) * depth_image
         for i in range(3):
             ws_points[:, :, i] = pose[i, 0] * al + pose[i, 1] * bl + pose[i, 2] * depth_image
+        return ws_points
 
     @staticmethod
     def estimate_rigid_transform(p: np.ndarray, q: np.ndarray) -> np.ndarray:
@@ -148,11 +149,9 @@ class GeometryUtil:
         """
         # Back-project the points from the source depth image and transform them into the camera space
         # of the target image so that they can be reprojected down onto that image.
-        source_height, source_width = source_depth_image.shape
-        target_points: np.ndarray = np.zeros((source_height, source_width, 3), dtype=float)
         target_from_source: np.ndarray = np.linalg.inv(world_from_target) @ world_from_source
-        GeometryUtil.compute_world_points_image_fast(
-            source_depth_image, target_from_source, source_intrinsics, target_points
+        target_points: np.ndarray = GeometryUtil.compute_world_points_image_fast(
+            source_depth_image, target_from_source, source_intrinsics
         )
 
         # Reproject the points down onto the target image to find the correspondences. For each point, the relevant
@@ -163,6 +162,7 @@ class GeometryUtil:
         if target_intrinsics is None:
             target_intrinsics = source_intrinsics
         fx, fy, cx, cy = target_intrinsics
+        source_height, source_width = source_depth_image.shape
         correspondence_image: np.ndarray = np.zeros((source_height, source_width, 2), dtype=int)
         np.seterr(divide="ignore", invalid="ignore")
         xs = np.round(fx * target_points[:, :, 0] / target_points[:, :, 2] + cx).astype(int)
