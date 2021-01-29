@@ -109,7 +109,7 @@ class PooledQueue(Generic[T]):
 
     # PUBLIC METHODS
 
-    def begin_push(self) -> PushHandler:
+    def begin_push(self, stop_waiting: Optional[threading.Event] = None) -> PushHandler:
         """
         Start a push operation.
 
@@ -120,7 +120,8 @@ class PooledQueue(Generic[T]):
             new element from scratch. Finally, the __exit__ function of the push handler calls _end_push()
             to actually push the element onto the queue.
 
-        :return:    A push handler that will handle the process of pushing an element onto the queue.
+        :param stop_waiting:    An optional event that can be used to make the operation stop waiting if needed.
+        :return:                A push handler that will handle the process of pushing an element onto the queue.
         """
         with self.__lock:
             # The first task is to make sure that the pool contains an element into which the caller can write.
@@ -142,6 +143,8 @@ class PooledQueue(Generic[T]):
                 elif self.__pool_empty_strategy == PooledQueue.PES_WAIT:
                     while len(self.__pool) == 0:
                         self.__pool_non_empty.wait(0.1)
+                        if stop_waiting is not None and stop_waiting.is_set():
+                            return PooledQueue.PushHandler(self, None)
 
             # At this point, the pool definitely contains at least one element, so we can simply
             # remove the first element in the pool and return it to the caller for writing.
@@ -175,7 +178,7 @@ class PooledQueue(Generic[T]):
             for i in range(capacity):
                 self.__pool.append(maker())
 
-    def peek(self, stop_waiting: Optional[threading.Event] = None) -> T:
+    def peek(self, stop_waiting: Optional[threading.Event] = None) -> Optional[T]:
         """
         Try to get the first element in the queue.
 
@@ -192,16 +195,20 @@ class PooledQueue(Generic[T]):
                     return None
             return self.__queue[0]
 
-    def pop(self) -> None:
+    def pop(self, stop_waiting: Optional[threading.Event] = None) -> None:
         """
         Pop the first element from the queue and return it to the pool.
 
         .. note::
-            This will block until the queue is non-empty.
+            This will block until either the queue is non-empty or the stop waiting event occurs.
+
+        :param stop_waiting:    An optional event that can be used to make the pop operation stop waiting if needed.
         """
         with self.__lock:
             while len(self.__queue) == 0:
                 self.__queue_non_empty.wait(0.1)
+                if stop_waiting is not None and stop_waiting.is_set():
+                    return
             self.__pool.append(self.__queue.popleft())
             self.__pool_non_empty.notify()
 
