@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+from typing import Any
+
+
+# MAIN CLASS
 
 class ImageUtil:
     """Utility functions related to images."""
@@ -8,14 +12,32 @@ class ImageUtil:
     # PUBLIC STATIC METHODS
 
     @staticmethod
-    def flip_channels(img: np.ndarray) -> np.ndarray:
+    def fill_border(image: np.ndarray, border_size: int, value: Any) -> np.ndarray:
+        """
+        Make a copy of the input image in which a border of the size specified has been filled with the specified value.
+
+        :param image:       The input image.
+        :param border_size: The border size (in pixels).
+        :param value:       The value with which to fill the border.
+        :return:            The output image.
+        """
+        height, width = image.shape
+        image_copy: np.ndarray = image.copy()
+        image_copy[:border_size, :] = value
+        image_copy[height - border_size:, :] = value
+        image_copy[:, :border_size] = value
+        image_copy[:, width - border_size:] = value
+        return image_copy
+
+    @staticmethod
+    def flip_channels(image: np.ndarray) -> np.ndarray:
         """
         Convert a BGR image to RGB, or vice-versa.
 
-        :param img: The input image.
-        :return:    The output image.
+        :param image:   The input image.
+        :return:        The output image.
         """
-        return np.ascontiguousarray(img[:, :, [2, 1, 0]])
+        return np.ascontiguousarray(image[:, :, [2, 1, 0]])
 
     @staticmethod
     def from_short_depth(short_depth_image: np.ndarray, *, depth_scale_factor: float = 1000) -> np.ndarray:
