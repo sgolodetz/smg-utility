@@ -195,6 +195,28 @@ class PooledQueue(Generic[T]):
                     return None
             return self.__queue[0]
 
+    def peek_last(self, stop_waiting: Optional[threading.Event] = None) -> Optional[T]:
+        """
+        Try to get the last element in the queue (i.e. the one most recently added).
+
+        .. note::
+            This will block until the queue is non-empty, but can still return None if the stop waiting event occurs.
+        .. note::
+            The reason for creating a separate method for this, rather than simply changing peek to take an element
+            index, and passing q.size() - 1 to it, is that the caller would have to hold a lock whilst making the
+            q.peek(q.size() - 1) call to prevent the queue changing between the call to q.size() and the call to
+            q.peek(). That's error-prone: it's much nicer to have a dedicated method.
+
+        :param stop_waiting:    An optional event that can be used to make the peek operation stop waiting if needed.
+        :return:                The last element in the queue, if possible, or None if the stop waiting event occurs.
+        """
+        with self.__lock:
+            while len(self.__queue) == 0:
+                self.__queue_non_empty.wait(0.1)
+                if stop_waiting is not None and stop_waiting.is_set():
+                    return None
+            return self.__queue[len(self.__queue) - 1]
+
     def pop(self, stop_waiting: Optional[threading.Event] = None) -> None:
         """
         Pop the first element from the queue and return it to the pool.
