@@ -1,3 +1,5 @@
+# -*- coding: future_annotations -*-
+
 import json
 import os
 
@@ -15,8 +17,9 @@ class CameraParameters:
 
     # PUBLIC STATIC METHODS
 
+    # noinspection PyUnresolvedReferences
     @staticmethod
-    def try_load(filename: str) -> Optional["CameraParameters"]:
+    def try_load(filename: str) -> Optional[CameraParameters]:
         """
         Try to load a set of camera parameters from a JSON file.
 
@@ -91,7 +94,8 @@ class CameraParameters:
 
     # PRIVATE METHODS
 
-    def __try_load(self, filename: str) -> Optional["CameraParameters"]:
+    # noinspection PyUnresolvedReferences
+    def __try_load(self, filename: str) -> Optional[CameraParameters]:
         """
         Try to load a set of camera parameters from a JSON file.
 
