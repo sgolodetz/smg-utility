@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import collections
 import random
 import threading
@@ -27,7 +25,7 @@ class PooledQueue(Generic[T]):
         # PUBLIC STATIC METHODS
 
         @staticmethod
-        def make(name: str) -> PooledQueue.EPoolEmptyStrategy:
+        def make(name: str) -> "PooledQueue.EPoolEmptyStrategy":
             """
             Make a pool empty strategy from its name.
 
@@ -57,7 +55,7 @@ class PooledQueue(Generic[T]):
 
         # CONSTRUCTOR
 
-        def __init__(self, base: PooledQueue[T], elt: Optional[T]):
+        def __init__(self, base: "PooledQueue[T]", elt: Optional[T]):
             """
             Construct a push handler.
 
