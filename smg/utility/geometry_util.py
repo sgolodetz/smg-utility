@@ -15,6 +15,17 @@ class GeometryUtil:
     # PUBLIC STATIC METHODS
 
     @staticmethod
+    def apply_rigid_transform(mat4x4: np.ndarray, vec3: np.ndarray) -> np.ndarray:
+        """
+        Apply a rigid-body transform expressed as a 4x4 matrix to a 3D vector.
+
+        :param mat4x4:  The 4x4 matrix.
+        :param vec3:    The 3D vector.
+        :return:        The result of applying the rigid-body transform to the 3D vector.
+        """
+        return GeometryUtil.to_3x4(mat4x4) @ np.array([*vec3, 1.0])
+
+    @staticmethod
     def compute_world_points_image(depth_image: np.ndarray, depth_mask: np.ndarray, pose: np.ndarray,
                                    fx: float, fy: float, cx: float, cy: float, ws_points: np.ndarray) -> None:
         """
@@ -332,6 +343,28 @@ class GeometryUtil:
                 output_image = np.where(selection_image[:, :, i] >= 0, output_image, invalid_value)
 
         return output_image
+
+    @staticmethod
+    def to_3x4(mat4x4: np.ndarray) -> np.ndarray:
+        """
+        Convert a 4*4 matrix representation of a rigid-body transform to its 3*4 equivalent.
+
+        :param mat4x4:  The 4*4 matrix representation of the rigid-body transform.
+        :return:        The 3*4 matrix representation of the rigid-body transform.
+        """
+        return mat4x4[0:3, :]
+
+    @staticmethod
+    def to_4x4(mat3x4: np.ndarray) -> np.ndarray:
+        """
+        Convert a 3*4 matrix representation of a rigid-body transform to its 4*4 equivalent.
+
+        :param mat3x4:  The 3*4 matrix representation of the rigid-body transform.
+        :return:        The 4*4 matrix representation of the rigid-body transform.
+        """
+        mat4x4: np.ndarray = np.eye(4)
+        mat4x4[0:3, :] = mat3x4
+        return mat4x4
 
     # PRIVATE STATIC CUDA KERNELS
 
