@@ -1,3 +1,4 @@
+from .shapes import *
 from .camera_parameters import CameraParameters
 from .fiducial_util import FiducialUtil
 from .geometry_util import GeometryUtil
