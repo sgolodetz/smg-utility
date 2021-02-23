@@ -178,7 +178,7 @@ class Cylinder(Shape):
     @property
     def top_centre(self) -> np.ndarray:
         """
-        Get the centre of the cylinder's top
+        Get the centre of the cylinder's top.
 
         :return:    The centre of the cylinder's top.
         """
