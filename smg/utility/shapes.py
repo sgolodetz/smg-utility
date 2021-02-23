@@ -101,15 +101,38 @@ class Shape(ABC):
 
     @abstractmethod
     def maxs(self) -> np.ndarray:
+        """
+        Get the upper bounds of an AABB around the shape.
+
+        .. note::
+            The AABB will definitely contain the shape, but may not necessarily be tight.
+
+        :return:    The upper bounds of an AABB around the shape.
+        """
         pass
 
     @abstractmethod
     def mins(self) -> np.ndarray:
+        """
+        Get the lower bounds of an AABB around the shape.
+
+        .. note::
+            The AABB will definitely contain the shape, but may not necessarily be tight.
+
+        :return:    The lower bounds of an AABB around the shape.
+        """
         pass
 
     # PUBLIC METHODS
 
     def classify_sphere(self, centre, radius: float) -> EShapeClassification:
+        """
+        Classify a sphere against the shape.
+
+        :param centre:  The centre of the sphere.
+        :param radius:  The radius of the sphere.
+        :return:        The result of classifying the sphere against the shape.
+        """
         return self.expand(radius).classify_point(centre)
 
 
@@ -119,6 +142,14 @@ class Cylinder(Shape):
     # CONSTRUCTOR
 
     def __init__(self, *, base_centre, base_radius: float, top_centre, top_radius: float):
+        """
+        Construct a (conical) cylinder.
+
+        :param base_centre: The centre of the cylinder's base.
+        :param base_radius: The radius of the cylinder's base.
+        :param top_centre:  The centre of the cylinder's top.
+        :param top_radius:  The radius of the cylinder's top.
+        """
         self.__base_centre: np.ndarray = np.array(base_centre)
         self.__base_radius: float = base_radius
         self.__top_centre: np.ndarray = np.array(top_centre)
@@ -128,18 +159,38 @@ class Cylinder(Shape):
 
     @property
     def base_centre(self) -> np.ndarray:
+        """
+        Get the centre of the cylinder's base.
+
+        :return:    The centre of the cylinder's base.
+        """
         return self.__base_centre
 
     @property
     def base_radius(self) -> float:
+        """
+        Get the radius of the cylinder's base.
+
+        :return:    The radius of the cylinder's base.
+        """
         return self.__base_radius
 
     @property
     def top_centre(self) -> np.ndarray:
+        """
+        Get the centre of the cylinder's top
+
+        :return:    The centre of the cylinder's top.
+        """
         return self.__top_centre
 
     @property
     def top_radius(self) -> float:
+        """
+        Get the radius of the cylinder's top.
+
+        :return:    The radius of the cylinder's top.
+        """
         return self.__top_radius
 
     # PUBLIC METHODS
@@ -153,25 +204,38 @@ class Cylinder(Shape):
         visitor.visit_cylinder(self)
 
     def classify_point(self, p) -> EShapeClassification:
+        """
+        Classify a point against the cylinder.
+
+        :param p:   The point.
+        :return:    The result of classifying the point against the cylinder.
+        """
+        # Convert the point to a numpy array (if it isn't one already).
         p = np.array(p)
-        q: np.ndarray = p - self.__base_centre
 
+        # Compute the offset of the point from the centre of the cylinder's base.
+        offset: np.ndarray = p - self.__base_centre
+
+        # Compute a vector along the axis of the cylinder.
         axis: np.ndarray = self.__top_centre - self.__base_centre
-        t: float = vg.scalar_projection(q, axis) / np.linalg.norm(axis)
-        radius: float = (1 - t) * self.__base_radius + t * self.__top_radius
-        distance_from_axis: float = np.linalg.norm(vg.reject(q, axis))
 
-        if 0 < t < 1:
-            if distance_from_axis < radius:
+        # Work out how far along the cylinder's axis the closest point on the axis to the input point lies.
+        t: float = vg.scalar_projection(offset, axis) / np.linalg.norm(axis)
+
+        # If the closest point on the axis is not outside the cylinder:
+        if 0 <= t <= 1:
+            # Compute the distance of the input point from the axis, and the radius of the cylinder at that point.
+            distance_from_axis: float = np.linalg.norm(vg.reject(offset, axis))
+            radius: float = (1 - t) * self.__base_radius + t * self.__top_radius
+
+            # Check whether the input point is strictly within the cylinder or on its surface.
+            if 0 < t < 1 and distance_from_axis < radius:
                 return SC_INSIDE
-            elif distance_from_axis > radius:
-                return SC_OUTSIDE
-            else:
+            elif distance_from_axis <= radius:
                 return SC_SURFACE
-        elif t == 0 or t == 1:
-            return SC_SURFACE
-        else:
-            return SC_OUTSIDE
+
+        # If we get here, the input point's outside the cylinder.
+        return SC_OUTSIDE
 
     # noinspection PyUnresolvedReferences
     def expand(self, radius: float) -> Cylinder:
@@ -190,7 +254,14 @@ class Cylinder(Shape):
         )
 
     def maxs(self) -> np.ndarray:
-        # Note: These upper bounds are not especially tight, but they'll do for now.
+        """
+        Get the upper bounds of an AABB around the cylinder.
+
+        .. note::
+            These upper bounds are not especially tight, but they'll do for now.
+
+        :return:    The upper bounds of an AABB around the cylinder.
+        """
         return np.max(
             [
                 self.__base_centre + np.full(3, self.__base_radius),
@@ -200,7 +271,14 @@ class Cylinder(Shape):
         )
 
     def mins(self) -> np.ndarray:
-        # Note: These lower bounds are not especially tight, but they'll do for now.
+        """
+        Get the lower bounds of an AABB around the cylinder.
+
+        .. note::
+            These lower bounds are not especially tight, but they'll do for now.
+
+        :return:    The lower bounds of an AABB around the cylinder.
+        """
         return np.min(
             [
                 self.__base_centre - np.full(3, self.__base_radius),
@@ -216,6 +294,12 @@ class Sphere(Shape):
     # CONSTRUCTOR
 
     def __init__(self, *, centre, radius: float):
+        """
+        Construct a sphere.
+
+        :param centre:  The centre of the sphere.
+        :param radius:  The radius of the sphere.
+        """
         self.__centre: np.ndarray = np.array(centre)
         self.__radius: float = radius
 
@@ -223,10 +307,20 @@ class Sphere(Shape):
 
     @property
     def centre(self) -> np.ndarray:
+        """
+        Get the centre of the sphere.
+
+        :return:    The centre of the sphere.
+        """
         return self.__centre
 
     @property
     def radius(self) -> float:
+        """
+        Get the radius of the sphere.
+
+        :return:    The radius of the sphere.
+        """
         return self.__radius
 
     # PUBLIC METHODS
@@ -240,6 +334,12 @@ class Sphere(Shape):
         visitor.visit_sphere(self)
 
     def classify_point(self, p) -> EShapeClassification:
+        """
+        Classify a point against the sphere.
+
+        :param p:   The point.
+        :return:    The result of classifying the point against the sphere.
+        """
         p = np.array(p)
 
         distance: float = np.linalg.norm(p - self.__centre)
@@ -253,10 +353,26 @@ class Sphere(Shape):
 
     # noinspection PyUnresolvedReferences
     def expand(self, radius: float) -> Sphere:
+        """
+        Make an expanded copy of the sphere.
+
+        :param radius:  The radius by which to expand the sphere.
+        :return:        The expanded copy of the sphere.
+        """
         return Sphere(centre=self.__centre, radius=self.__radius + radius)
 
     def maxs(self) -> np.ndarray:
+        """
+        Get the upper bounds of an AABB around the sphere.
+
+        :return:    The upper bounds of an AABB around the sphere.
+        """
         return self.__centre + np.full(3, self.__radius)
 
     def mins(self) -> np.ndarray:
+        """
+        Get the lower bounds of an AABB around the sphere.
+
+        :return:    The lower bounds of an AABB around the sphere.
+        """
         return self.__centre - np.full(3, self.__radius)
