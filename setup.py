@@ -15,6 +15,7 @@ setup(
     packages=find_packages(include=["smg.utility", "smg.utility.*"]),
     include_package_data=True,
     install_requires=[
+        "future-annotations",
         "numba",
         "numpy",
         "opencv-contrib-python==3.4.2.16",
