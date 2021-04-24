@@ -25,14 +25,18 @@ class TrajectoryUtil:
 
         # Convert the lines into an n*8 data array, where n is the trajectory length and each row is of
         # the form "timestamp tx ty tz qx qy qz qw".
-        data: np.ndarray = np.array([list(map(float, line.split(" "))) for line in lines if line])
+        # : np.ndarray
+        data = np.array([list(map(float, line.split(" "))) for line in lines if line])
 
         # Construct and return the output list.
-        result: List[Tuple[float, np.ndarray]] = []
+        # : List[Tuple[float, np.ndarray]]
+        result = []
         for i in range(data.shape[0]):
             timestamp, tx, ty, tz, qx, qy, qz, qw = data[i, :]
-            r: Rotation = Rotation.from_quat([qx, qy, qz, qw])
-            pose: np.ndarray = np.eye(4)
+            # : Rotation
+            r = Rotation.from_quat([qx, qy, qz, qw])
+            # : np.ndarray
+            pose = np.eye(4)
             pose[0:3, 0:3] = r.as_matrix()
             pose[0:3, 3] = [tx, ty, tz]
             result.append((timestamp, pose))
@@ -49,7 +53,8 @@ class TrajectoryUtil:
         :param neighbourhood_size:  The neighbourhood size for the Laplacian smoothing.
         :return:                    The smoothed trajectory.
         """
-        smoother: TrajectorySmoother = TrajectorySmoother(neighbourhood_size=neighbourhood_size)
+        # : TrajectorySmoother
+        smoother = TrajectorySmoother(neighbourhood_size=neighbourhood_size)
         for timestamp, pose in trajectory:
             smoother.append(timestamp, pose)
         return smoother.get_smoothed_trajectory()
@@ -63,7 +68,9 @@ class TrajectoryUtil:
         :param timestamp:   The timestamp.
         :param pose:        The pose.
         """
-        r: Rotation = Rotation.from_matrix(pose[0:3, 0:3])
-        t: np.ndarray = pose[0:3, 3]
+        # : Rotation
+        r = Rotation.from_matrix(pose[0:3, 0:3])
+        # : np.ndarray
+        t = pose[0:3, 3]
         f.write(" ".join([str(timestamp)] + list(map(str, t)) + list(map(str, r.as_quat()))))
         f.write("\n")

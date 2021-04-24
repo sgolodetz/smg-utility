@@ -1,5 +1,3 @@
-# -*- coding: future_annotations -*-
-
 import json
 import os
 
@@ -13,13 +11,14 @@ class CameraParameters:
 
     def __init__(self):
         """Construct a set of camera parameters."""
-        self.__data: Dict[str, Dict[str, Any]] = {}
+        # : Dict[str, Dict[str, Any]]
+        self.__data = {}
 
     # PUBLIC STATIC METHODS
 
     # noinspection PyUnresolvedReferences
     @staticmethod
-    def try_load(filename: str) -> Optional[CameraParameters]:
+    def try_load(filename: str) -> Optional["CameraParameters"]:
         """
         Try to load a set of camera parameters from a JSON file.
 
@@ -50,11 +49,13 @@ class CameraParameters:
         :param camera_name: The name of a camera.
         :return:            The size of the images produced by the camera, as a (width, height) tuple.
         """
-        camera_data: Optional[Dict[str, Any]] = self.__data.get(camera_name)
+        # : Optional[Dict[str, Any]]
+        camera_data = self.__data.get(camera_name)
         if camera_data is not None:
             return camera_data["width"], camera_data["height"]
         else:
-            raise RuntimeError(f"Cannot get image size for unknown camera '{camera_name}'")
+            # raise RuntimeError(f"Cannot get image size for unknown camera '{camera_name}'")
+            raise RuntimeError("Cannot get image size for unknown camera '{}'".format(camera_name))
 
     def get_intrinsics(self, camera_name: str) -> Tuple[float, float, float, float]:
         """
@@ -63,11 +64,13 @@ class CameraParameters:
         :param camera_name: The name of a camera.
         :return:            The intrinsics of the camera.
         """
-        camera_data: Optional[Dict[str, Any]] = self.__data.get(camera_name)
+        # : Optional[Dict[str, Any]]
+        camera_data = self.__data.get(camera_name)
         if camera_data is not None:
             return camera_data["fx"], camera_data["fy"], camera_data["cx"], camera_data["cy"]
         else:
-            raise RuntimeError(f"Cannot get intrinsics for unknown camera '{camera_name}'")
+            # raise RuntimeError(f"Cannot get intrinsics for unknown camera '{camera_name}'")
+            raise RuntimeError("Cannot get intrinsics for unknown camera '{}'".format(camera_name))
 
     def save(self, filename: str) -> None:
         """
@@ -95,7 +98,7 @@ class CameraParameters:
     # PRIVATE METHODS
 
     # noinspection PyUnresolvedReferences
-    def __try_load(self, filename: str) -> Optional[CameraParameters]:
+    def __try_load(self, filename: str) -> Optional["CameraParameters"]:
         """
         Try to load a set of camera parameters from a JSON file.
 

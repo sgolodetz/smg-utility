@@ -18,12 +18,14 @@ class PoseUtil:
         :return:            The 4x4 pose matrix.
         """
         with open(filename, "r") as file:
-            data: List[str] = file.read().split()
+            # : List[str]
+            data = file.read().split()
 
         if len(data) != 16:
             raise Exception('Cannot parse pose in "{}".'.format(filename))
 
-        pose: np.ndarray = np.eye(4, dtype=np.float32)
+        # : np.ndarray
+        pose = np.eye(4, dtype=np.float32)
 
         for y, x in itertools.product(range(3), range(4)):
             pose[y, x] = float(data[y * 4 + x])

@@ -1,12 +1,8 @@
-# -*- coding: future_annotations -*-
-
 import collections
 import random
 import threading
 
-from typing import Callable, Deque, Generic, Optional, TypeVar
-
-from .type_util import TypeUtil
+from typing import Callable, Generic, Optional, TypeVar
 
 
 # TYPE VARIABLE
@@ -28,7 +24,7 @@ class PooledQueue(Generic[T]):
 
         # noinspection PyUnresolvedReferences
         @staticmethod
-        def make(name: str) -> PooledQueue.EPoolEmptyStrategy:
+        def make(name: str) -> "PooledQueue.EPoolEmptyStrategy":
             """
             Make a pool empty strategy from its name.
 
@@ -45,13 +41,13 @@ class PooledQueue(Generic[T]):
                 return PooledQueue.PES_WAIT
 
     # Discard the new element.
-    PES_DISCARD: EPoolEmptyStrategy = 0
+    PES_DISCARD = EPoolEmptyStrategy(0)
     # Add an extra element to the pool to accommodate the new element.
-    PES_GROW: EPoolEmptyStrategy = 1
+    PES_GROW = EPoolEmptyStrategy(1)
     # Move a random element from the queue back to the pool to accommodate the new element.
-    PES_REPLACE_RANDOM: EPoolEmptyStrategy = 2
+    PES_REPLACE_RANDOM = EPoolEmptyStrategy(2)
     # Wait for another thread to pop an element from the queue, thereby making space for the new element.
-    PES_WAIT: EPoolEmptyStrategy = 3
+    PES_WAIT = EPoolEmptyStrategy(3)
 
     class PushHandler:
         """Used to handle the process of pushing an element onto the queue."""
@@ -59,15 +55,17 @@ class PooledQueue(Generic[T]):
         # CONSTRUCTOR
 
         # noinspection PyUnresolvedReferences
-        def __init__(self, base: PooledQueue[T], elt: Optional[T]):
+        def __init__(self, base: "PooledQueue[T]", elt: Optional[T]):
             """
             Construct a push handler.
 
             :param base:    The pooled queue on which the push was called.
             :param elt:     The element that is to be pushed onto the queue (if any).
             """
-            self.__base: PooledQueue[T] = base
-            self.__elt: Optional[T] = elt
+            # : PooledQueue[T]
+            self.__base = base
+            # : Optional[T]
+            self.__elt = elt
 
         # SPECIAL METHODS
 
@@ -98,16 +96,24 @@ class PooledQueue(Generic[T]):
 
         :param pool_empty_strategy: What should happen when a push is attempted while the pool is empty.
         """
-        self.__pool_empty_strategy: PooledQueue.EPoolEmptyStrategy = pool_empty_strategy
+        # : PooledQueue.EPoolEmptyStrategy
+        self.__pool_empty_strategy = pool_empty_strategy
         if pool_empty_strategy == PooledQueue.PES_REPLACE_RANDOM:
-            self.__rng: random.Random = random.Random(12345)
+            # : random.Random
+            self.__rng = random.Random(12345)
 
-        self.__lock: threading.Lock = threading.Lock()
-        self.__maker: Optional[Callable[[], T]] = None
-        self.__pool: Deque[T] = collections.deque()
-        self.__pool_non_empty: threading.Condition = threading.Condition(self.__lock)
-        self.__queue: Deque[T] = collections.deque()
-        self.__queue_non_empty: threading.Condition = threading.Condition(self.__lock)
+        # : threading.Lock
+        self.__lock = threading.Lock()
+        # : Optional[Callable[[], T]]
+        self.__maker = None
+        # : Deque[T]
+        self.__pool = collections.deque()
+        # : threading.Condition
+        self.__pool_non_empty = threading.Condition(self.__lock)
+        # : Deque[T]
+        self.__queue = collections.deque()
+        # : threading.Condition
+        self.__queue_non_empty = threading.Condition(self.__lock)
 
     # PUBLIC METHODS
 
@@ -138,7 +144,8 @@ class PooledQueue(Generic[T]):
                 elif self.__pool_empty_strategy == PooledQueue.PES_GROW:
                     self.__pool.append(self.__maker())
                 elif self.__pool_empty_strategy == PooledQueue.PES_REPLACE_RANDOM:
-                    offset: int = self.__rng.randrange(0, len(self.__queue))
+                    # : int
+                    offset = self.__rng.randrange(0, len(self.__queue))
                     if offset != 0:
                         self.__queue[0], self.__queue[offset] = self.__queue[offset], self.__queue[0]
                     self.__pool.append(self.__queue.popleft())
@@ -150,7 +157,8 @@ class PooledQueue(Generic[T]):
 
             # At this point, the pool definitely contains at least one element, so we can simply
             # remove the first element in the pool and return it to the caller for writing.
-            elt: T = self.__pool.popleft()
+            # : T
+            elt = self.__pool.popleft()
             return PooledQueue.PushHandler(self, elt)
 
     def empty(self) -> bool:
@@ -162,20 +170,14 @@ class PooledQueue(Generic[T]):
         with self.__lock:
             return len(self.__queue) == 0
 
-    def initialise(self, capacity: int, maker: Optional[Callable[[], T]] = None) -> None:
+    def initialise(self, capacity: int, maker: Callable[[], T]) -> None:
         """
         Initialise the pool backing the queue.
-
-        .. note::
-            If no maker is specified, the default constructor for T is used.
 
         :param capacity:    The initial capacity of the pool (if we're using the 'grow' strategy, this may change).
         :param maker:       A function that can be used to construct new elements.
         """
         with self.__lock:
-            if maker is None:
-                maker = TypeUtil.get_type_variable(self)
-
             self.__maker = maker
             for i in range(capacity):
                 self.__pool.append(maker())

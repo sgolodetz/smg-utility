@@ -25,16 +25,20 @@ class ShapeUtil:
         :param voxel_size:  The voxel size.
         :return:            A list of voxels that potentially intersect/touch at least one of the specified shapes.
         """
-        output: List[np.ndarray] = []
+        # : List[np.ndarray]
+        output = []
 
         # For each shape:
         for shape in shapes:
             # Round the shape bounds to the nearest voxel coordinates (away from zero).
-            mins: np.ndarray = np.floor(shape.mins() / voxel_size) * voxel_size
-            maxs: np.ndarray = np.ceil(shape.maxs() / voxel_size) * voxel_size
+            # : np.ndarray
+            mins = np.floor(shape.mins() / voxel_size) * voxel_size
+            # : np.ndarray
+            maxs = np.ceil(shape.maxs() / voxel_size) * voxel_size
 
             # Work out the x, y and z values for the centres of the voxels that will need to be tested.
-            vals: Dict[int, np.ndarray] = {}
+            # : Dict[int, np.ndarray]
+            vals = {}
             for i in range(3):
                 vals[i] = np.linspace(
                     mins[i] + voxel_size / 2, maxs[i] - voxel_size / 2, int(np.round((maxs[i] - mins[i]) / voxel_size))
@@ -46,7 +50,8 @@ class ShapeUtil:
                     for x in vals[0]:
                         # Test its bounding sphere against the shape. If it intersects/touches the shape,
                         # add the voxel to the output list.
-                        voxel_centre: np.ndarray = np.array([x, y, z])
+                        # : np.ndarray
+                        voxel_centre = np.array([x, y, z])
                         if shape.classify_sphere(voxel_centre, np.sqrt(3) * voxel_size / 2) != SC_OUTSIDE:
                             output.append(voxel_centre)
 
