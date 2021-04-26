@@ -148,14 +148,10 @@ class Cylinder(Shape):
         :param top_centre:  The centre of the cylinder's top.
         :param top_radius:  The radius of the cylinder's top.
         """
-        # : np.ndarray
-        self.__base_centre = np.array(base_centre)
-        # : float
-        self.__base_radius = base_radius
-        # : np.ndarray
-        self.__top_centre = np.array(top_centre)
-        # : float
-        self.__top_radius = top_radius
+        self.__base_centre = np.array(base_centre)  # type: np.ndarray
+        self.__base_radius = base_radius  # type: float
+        self.__top_centre = np.array(top_centre)  # type: np.ndarray
+        self.__top_radius = top_radius  # type: float
 
     # PROPERTIES
 
@@ -216,24 +212,19 @@ class Cylinder(Shape):
         p = np.array(p)
 
         # Compute the offset of the point from the centre of the cylinder's base.
-        # : np.ndarray
-        offset = p - self.__base_centre
+        offset = p - self.__base_centre  # type: np.ndarray
 
         # Compute a vector along the axis of the cylinder.
-        # : np.ndarray
-        axis = self.__top_centre - self.__base_centre
+        axis = self.__top_centre - self.__base_centre  # type: np.ndarray
 
         # Work out how far along the cylinder's axis the closest point on the axis to the input point lies.
-        # : float
-        t = vg.scalar_projection(offset, axis) / np.linalg.norm(axis)
+        t = vg.scalar_projection(offset, axis) / np.linalg.norm(axis)  # type: float
 
         # If the closest point on the axis is not outside the cylinder:
         if 0 <= t <= 1:
             # Compute the distance of the input point from the axis, and the radius of the cylinder at that point.
-            # : float
-            distance_from_axis = np.linalg.norm(vg.reject(offset, axis))
-            # : float
-            radius = (1 - t) * self.__base_radius + t * self.__top_radius
+            distance_from_axis = np.linalg.norm(vg.reject(offset, axis))  # type: float
+            radius = (1 - t) * self.__base_radius + t * self.__top_radius  # type: float
 
             # Check whether the input point is strictly within the cylinder or on its surface.
             if 0 < t < 1 and distance_from_axis < radius:
@@ -252,8 +243,7 @@ class Cylinder(Shape):
         :param radius:  The radius by which to expand the cylinder.
         :return:        The expanded copy of the cylinder.
         """
-        # : np.ndarray
-        axis = vg.normalize(self.__top_centre - self.__base_centre)
+        axis = vg.normalize(self.__top_centre - self.__base_centre)  # type: np.ndarray
         return Cylinder(
             base_centre=self.__base_centre - axis * radius,
             base_radius=self.__base_radius + radius,
@@ -308,10 +298,8 @@ class Sphere(Shape):
         :param centre:  The centre of the sphere.
         :param radius:  The radius of the sphere.
         """
-        # : np.ndarray
-        self.__centre = np.array(centre)
-        # : float
-        self.__radius = radius
+        self.__centre = np.array(centre)  # type: np.ndarray
+        self.__radius = radius  # type: float
 
     # PROPERTIES
 
@@ -352,8 +340,7 @@ class Sphere(Shape):
         """
         p = np.array(p)
 
-        # : float
-        distance = np.linalg.norm(p - self.__centre)
+        distance = np.linalg.norm(p - self.__centre)  # type: float
 
         if distance < self.__radius:
             return SC_INSIDE

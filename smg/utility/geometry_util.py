@@ -64,8 +64,7 @@ class GeometryUtil:
         """
         # TODO: This should ultimately replace the compute_world_points_image function above.
         height, width = depth_image.shape
-        # : np.ndarray
-        ws_points = np.zeros((height, width, 3), dtype=float)
+        ws_points = np.zeros((height, width, 3), dtype=float)  # type: np.ndarray
         fx, fy, cx, cy = intrinsics
         xl = np.array(range(width))
         yl = np.array(range(height))
@@ -88,20 +87,16 @@ class GeometryUtil:
         :return:    The estimated rigid body transform between the two sets of points.
         """
         # Step 1: Count the correspondences.
-        # : int
-        n = p.shape[1]
+        n = p.shape[1]  # type: int
 
         # Step 2: Compute the centroids of the two sets of points. For n = 3:
         #
         # centroid = (x1 x2 x3) * (1/3) = ((x1 + x2 + x3) / 3) = (cx)
         #            (y1 y2 y3) * (1/3) = ((y1 + y2 + y3) / 3) = (cy)
         #            (z1 z2 z3) * (1/3) = ((z1 + z2 + z3) / 3) = (cz)
-        # : np.ndarray
-        nths = np.full((n, 1), 1 / n)
-        # : np.ndarray
-        centroid_p = p.dot(nths)
-        # : np.ndarray
-        centroid_q = q.dot(nths)
+        nths = np.full((n, 1), 1 / n)  # type: np.ndarray
+        centroid_p = p.dot(nths)  # type: np.ndarray
+        centroid_q = q.dot(nths)  # type: np.ndarray
 
         # Step 3: Translate the points in each set so that their centroid coincides with the origin
         #         of the coordinate system. To do this, we subtract the centroid from each point.
@@ -109,16 +104,12 @@ class GeometryUtil:
         # centred = (x1 x2 x3) - (cx) * (1 1 1) = (x1 x2 x3) - (cx cx cx) = (x1-cx x2-cx x3-cx)
         #           (y1 y2 y3)   (cy)             (y1 y2 y3)   (cy cy cy)   (y1-cy y2-cy y3-cy)
         #           (z1 z2 z3)   (cz)             (z1 z2 z3)   (cz cz cz)   (z1-cz z2-cz z3-cz)
-        # : np.ndarray
-        ones_t = np.ones((1, n))
-        # : np.ndarray
-        centred_p = p - centroid_p.dot(ones_t)
-        # : np.ndarray
-        centred_q = q - centroid_q.dot(ones_t)
+        ones_t = np.ones((1, n))  # type: np.ndarray
+        centred_p = p - centroid_p.dot(ones_t)  # type: np.ndarray
+        centred_q = q - centroid_q.dot(ones_t)  # type: np.ndarray
 
         # Step 4: Compute the cross-covariance between the two matrices of centred points.
-        # : np.ndarray
-        a = centred_p.dot(centred_q.transpose())
+        a = centred_p.dot(centred_q.transpose())  # type: np.ndarray
 
         # Step 5: Calculate the SVD of the cross-covariance matrix: a = v * s * w^T.
         v, s, w_t = np.linalg.svd(a, full_matrices=True)
@@ -134,8 +125,7 @@ class GeometryUtil:
         t = centroid_q - r.dot(centroid_p)
 
         # Step 8: Combine the estimates into a 4x4 homogeneous transformation, and return it.
-        # : np.ndarray
-        m = np.eye(4)
+        m = np.eye(4)  # type: np.ndarray
         m[0:3, 0:3] = r
         m[0:3, 3] = np.transpose(t)
         return m
@@ -170,12 +160,10 @@ class GeometryUtil:
         """
         # Back-project the points from the source depth image and transform them into the camera space
         # of the target image so that they can be reprojected down onto that image.
-        # : np.ndarray
-        target_from_source = np.linalg.inv(world_from_target) @ world_from_source
-        # : np.ndarray
+        target_from_source = np.linalg.inv(world_from_target) @ world_from_source  # type: np.ndarray
         target_points = GeometryUtil.compute_world_points_image_fast(
             source_depth_image, target_from_source, source_intrinsics
-        )
+        )  # type: np.ndarray
 
         # Reproject the points down onto the target image to find the correspondences. For each point, the relevant
         # equations are x = fx * X / Z + cx and y = fy * Y / Z + cy. Note that Z can be 0 for a particular pixel,
@@ -186,8 +174,7 @@ class GeometryUtil:
             target_intrinsics = source_intrinsics
         fx, fy, cx, cy = target_intrinsics
         source_height, source_width = source_depth_image.shape
-        # : np.ndarray
-        correspondence_image = np.zeros((source_height, source_width, 2), dtype=int)
+        correspondence_image = np.zeros((source_height, source_width, 2), dtype=int)  # type: np.ndarray
         np.seterr(divide="ignore", invalid="ignore")
         xs = np.round(fx * target_points[:, :, 0] / target_points[:, :, 2] + cx).astype(int)
         ys = np.round(fy * target_points[:, :, 1] / target_points[:, :, 2] + cy).astype(int)
@@ -264,16 +251,13 @@ class GeometryUtil:
         """
         # Create a camera-space points image for the frame by using the identity pose.
         height, width = depth_image.shape
-        # : np.ndarray
-        cs_points = np.zeros((height, width, 3), dtype=np.float32)
+        cs_points = np.zeros((height, width, 3), dtype=np.float32)  # type: np.ndarray
         # noinspection PyTypeChecker
         GeometryUtil.compute_world_points_image(depth_image, depth_mask, np.eye(4), *intrinsics, cs_points)
 
         # Allocate the output point cloud arrays.
-        # : np.ndarray
-        pcd_points = np.zeros((height * width, 3))
-        # : np.ndarray
-        pcd_colours = np.ones((height * width, 3))
+        pcd_points = np.zeros((height * width, 3))  # type: np.ndarray
+        pcd_colours = np.ones((height * width, 3))  # type: np.ndarray
 
         # Launch the kernel.
         NumbaUtil.launch_kernel_2d(
@@ -294,31 +278,22 @@ class GeometryUtil:
         :param voxel_size:  The voxel size.
         :return:            The endpoints of the lines needed for the voxel grid.
         """
-        # : Dict[int, np.ndarray]
-        vals = {}
+        vals = {}  # type: Dict[int, np.ndarray]
         for i in range(3):
             maxs[i] = mins[i] + math.ceil((maxs[i] - mins[i]) / voxel_size[i]) * voxel_size[i]
             vals[i] = np.linspace(mins[i], maxs[i], int((maxs[i] - mins[i]) / voxel_size[i]) + 1)
 
-        # : List[Tuple[float, float, float]]
-        xpts1 = [(mins[0], y, z) for y, z in product(vals[1], vals[2])]
-        # : List[Tuple[float, float, float]]
-        xpts2 = [(maxs[0], y, z) for y, z in product(vals[1], vals[2])]
+        xpts1 = [(mins[0], y, z) for y, z in product(vals[1], vals[2])]  # type: List[Tuple[float, float, float]]
+        xpts2 = [(maxs[0], y, z) for y, z in product(vals[1], vals[2])]  # type: List[Tuple[float, float, float]]
 
-        # : List[Tuple[float, float, float]]
-        ypts1 = [(x, mins[1], z) for x, z in product(vals[0], vals[2])]
-        # : List[Tuple[float, float, float]]
-        ypts2 = [(x, maxs[1], z) for x, z in product(vals[0], vals[2])]
+        ypts1 = [(x, mins[1], z) for x, z in product(vals[0], vals[2])]  # type: List[Tuple[float, float, float]]
+        ypts2 = [(x, maxs[1], z) for x, z in product(vals[0], vals[2])]  # type: List[Tuple[float, float, float]]
 
-        # : List[Tuple[float, float, float]]
-        zpts1 = [(x, y, mins[2]) for x, y in product(vals[0], vals[1])]
-        # : List[Tuple[float, float, float]]
-        zpts2 = [(x, y, maxs[2]) for x, y in product(vals[0], vals[1])]
+        zpts1 = [(x, y, mins[2]) for x, y in product(vals[0], vals[1])]  # type: List[Tuple[float, float, float]]
+        zpts2 = [(x, y, maxs[2]) for x, y in product(vals[0], vals[1])]  # type: List[Tuple[float, float, float]]
 
-        # : List[Tuple[float, float, float]]
-        pts1 = xpts1 + ypts1 + zpts1
-        # : List[Tuple[float, float, float]]
-        pts2 = xpts2 + ypts2 + zpts2
+        pts1 = xpts1 + ypts1 + zpts1  # type: List[Tuple[float, float, float]]
+        pts2 = xpts2 + ypts2 + zpts2  # type: List[Tuple[float, float, float]]
 
         return pts1, pts2
 
@@ -334,8 +309,9 @@ class GeometryUtil:
         :return:                The new camera intrinsics.
         """
         fx, fy, cx, cy = old_intrinsics
-        # : Tuple[float, float]
-        fractions = (new_image_size[0] / old_image_size[0], new_image_size[1] / old_image_size[1])
+        fractions = (
+            new_image_size[0] / old_image_size[0], new_image_size[1] / old_image_size[1]
+        )  # type: Tuple[float, float]
         return fx * fractions[0], fy * fractions[1], cx * fractions[0], cy * fractions[1]
 
     @staticmethod
@@ -358,8 +334,7 @@ class GeometryUtil:
         # Copy the corresponding pixels from the target image into the output image. Note that the correspondence
         # image contains (-1, -1) for pixels without a valid correspondence, so we can safely index the target
         # with this, but we need to then filter out those pixels after the fact.
-        # : np.ndarray
-        output_image = target_image[selection_image[:, :, 1], selection_image[:, :, 0]]
+        output_image = target_image[selection_image[:, :, 1], selection_image[:, :, 0]]  # type: np.ndarray
 
         # Filter out the invalid pixels. Different implementations are needed depending on the number of channels.
         if len(output_image.shape) > 2 and output_image.shape[2] == 3:
@@ -389,8 +364,7 @@ class GeometryUtil:
         :param mat3x4:  The 3*4 matrix representation of the rigid-body transform.
         :return:        The 4*4 matrix representation of the rigid-body transform.
         """
-        # : np.ndarray
-        mat4x4 = np.eye(4)
+        mat4x4 = np.eye(4)  # type: np.ndarray
         mat4x4[0:3, :] = mat3x4
         return mat4x4
 
@@ -456,10 +430,8 @@ class GeometryUtil:
         y, x = cuda.grid(2)
         if y < depth_image.shape[0] and x < depth_image.shape[1]:
             # Compute the position (a,b,1)^T of the pixel on the image plane.
-            # : float
-            a = (x - cx) / fx
-            # : float
-            b = (y - cy) / fy
+            a = (x - cx) / fx  # type: float
+            b = (y - cy) / fy  # type: float
 
             # Compute the distance from the camera centre to the pixel, and then divide by it.
             dist_to_pixel = math.sqrt(a ** 2 + b ** 2 + 1 ** 2)

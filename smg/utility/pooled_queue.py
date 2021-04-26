@@ -2,7 +2,7 @@ import collections
 import random
 import threading
 
-from typing import Callable, Generic, Optional, TypeVar
+from typing import Callable, Deque, Generic, Optional, TypeVar
 
 
 # TYPE VARIABLE
@@ -62,10 +62,8 @@ class PooledQueue(Generic[T]):
             :param base:    The pooled queue on which the push was called.
             :param elt:     The element that is to be pushed onto the queue (if any).
             """
-            # : PooledQueue[T]
-            self.__base = base
-            # : Optional[T]
-            self.__elt = elt
+            self.__base = base  # type: PooledQueue[T]
+            self.__elt = elt  # type: Optional[T]
 
         # SPECIAL METHODS
 
@@ -96,24 +94,16 @@ class PooledQueue(Generic[T]):
 
         :param pool_empty_strategy: What should happen when a push is attempted while the pool is empty.
         """
-        # : PooledQueue.EPoolEmptyStrategy
-        self.__pool_empty_strategy = pool_empty_strategy
+        self.__pool_empty_strategy = pool_empty_strategy           # type: PooledQueue.EPoolEmptyStrategy
         if pool_empty_strategy == PooledQueue.PES_REPLACE_RANDOM:
-            # : random.Random
-            self.__rng = random.Random(12345)
+            self.__rng = random.Random(12345)                      # type: random.Random
 
-        # : threading.Lock
-        self.__lock = threading.Lock()
-        # : Optional[Callable[[], T]]
-        self.__maker = None
-        # : Deque[T]
-        self.__pool = collections.deque()
-        # : threading.Condition
-        self.__pool_non_empty = threading.Condition(self.__lock)
-        # : Deque[T]
-        self.__queue = collections.deque()
-        # : threading.Condition
-        self.__queue_non_empty = threading.Condition(self.__lock)
+        self.__lock = threading.Lock()                             # type: threading.Lock
+        self.__maker = None                                        # type: Optional[Callable[[], T]]
+        self.__pool = collections.deque()                          # type: Deque[T]
+        self.__pool_non_empty = threading.Condition(self.__lock)   # type: threading.Condition
+        self.__queue = collections.deque()                         # type: Deque[T]
+        self.__queue_non_empty = threading.Condition(self.__lock)  # type: threading.Condition
 
     # PUBLIC METHODS
 
@@ -144,8 +134,7 @@ class PooledQueue(Generic[T]):
                 elif self.__pool_empty_strategy == PooledQueue.PES_GROW:
                     self.__pool.append(self.__maker())
                 elif self.__pool_empty_strategy == PooledQueue.PES_REPLACE_RANDOM:
-                    # : int
-                    offset = self.__rng.randrange(0, len(self.__queue))
+                    offset = self.__rng.randrange(0, len(self.__queue))  # type: int
                     if offset != 0:
                         self.__queue[0], self.__queue[offset] = self.__queue[offset], self.__queue[0]
                     self.__pool.append(self.__queue.popleft())
@@ -157,8 +146,7 @@ class PooledQueue(Generic[T]):
 
             # At this point, the pool definitely contains at least one element, so we can simply
             # remove the first element in the pool and return it to the caller for writing.
-            # : T
-            elt = self.__pool.popleft()
+            elt = self.__pool.popleft()  # type: T
             return PooledQueue.PushHandler(self, elt)
 
     def empty(self) -> bool:

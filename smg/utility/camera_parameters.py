@@ -11,8 +11,7 @@ class CameraParameters:
 
     def __init__(self):
         """Construct a set of camera parameters."""
-        # : Dict[str, Dict[str, Any]]
-        self.__data = {}
+        self.__data = {}  # type: Dict[str, Dict[str, Any]]
 
     # PUBLIC STATIC METHODS
 
@@ -49,12 +48,10 @@ class CameraParameters:
         :param camera_name: The name of a camera.
         :return:            The size of the images produced by the camera, as a (width, height) tuple.
         """
-        # : Optional[Dict[str, Any]]
-        camera_data = self.__data.get(camera_name)
+        camera_data = self.__data.get(camera_name)  # type: Optional[Dict[str, Any]]
         if camera_data is not None:
             return camera_data["width"], camera_data["height"]
         else:
-            # raise RuntimeError(f"Cannot get image size for unknown camera '{camera_name}'")
             raise RuntimeError("Cannot get image size for unknown camera '{}'".format(camera_name))
 
     def get_intrinsics(self, camera_name: str) -> Tuple[float, float, float, float]:
@@ -64,12 +61,10 @@ class CameraParameters:
         :param camera_name: The name of a camera.
         :return:            The intrinsics of the camera.
         """
-        # : Optional[Dict[str, Any]]
-        camera_data = self.__data.get(camera_name)
+        camera_data = self.__data.get(camera_name)  # type: Optional[Dict[str, Any]]
         if camera_data is not None:
             return camera_data["fx"], camera_data["fy"], camera_data["cx"], camera_data["cy"]
         else:
-            # raise RuntimeError(f"Cannot get intrinsics for unknown camera '{camera_name}'")
             raise RuntimeError("Cannot get intrinsics for unknown camera '{}'".format(camera_name))
 
     def save(self, filename: str) -> None:

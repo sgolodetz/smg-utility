@@ -14,13 +14,10 @@ class TrajectorySmoother:
 
         :param neighbourhood_size:  The neighbourhood size for the Laplacian smoothing.
         """
-        # : Optional[int]
         self.__half_neighbourhood_size = neighbourhood_size // 2 \
-            if neighbourhood_size is not None else None
-        # : List[Tuple[float, np.ndarray]]
-        self.__raw_trajectory = []
-        # : List[Tuple[float, np.ndarray]]
-        self.__smoothed_trajectory = []
+            if neighbourhood_size is not None else None  # type: Optional[int]
+        self.__raw_trajectory = []  # type: List[Tuple[float, np.ndarray]]
+        self.__smoothed_trajectory = []  # type: List[Tuple[float, np.ndarray]]
 
     # PUBLIC METHODS
 
@@ -37,16 +34,12 @@ class TrajectorySmoother:
         # If a neighbourhood size was specified (and therefore smoothing is enabled):
         if self.__half_neighbourhood_size is not None:
             # If possible, smooth an earlier timestamped pose and append it to the smoothed trajectory.
-            # : int
-            high = len(self.__raw_trajectory) - 1
-            # : int
-            i = high - self.__half_neighbourhood_size
-            # : int
-            low = i - self.__half_neighbourhood_size
+            high = len(self.__raw_trajectory) - 1  # type: int
+            i = high - self.__half_neighbourhood_size  # type: int
+            low = i - self.__half_neighbourhood_size  # type: int
 
             if low >= 0:
-                # : np.ndarray
-                t = np.zeros(3)
+                t = np.zeros(3)  # type: np.ndarray
 
                 for j in range(low, high + 1):
                     _, pose_j = self.__raw_trajectory[j]
@@ -55,8 +48,7 @@ class TrajectorySmoother:
                 t /= (high + 1 - low)
 
                 timestamp_i, pose_i = self.__raw_trajectory[i]
-                # : np.ndarray
-                smoothed_pose_i = pose_i.copy()
+                smoothed_pose_i = pose_i.copy()  # type: np.ndarray
                 smoothed_pose_i[0:3, 3] = t
                 self.__smoothed_trajectory.append((timestamp_i, smoothed_pose_i))
         else:

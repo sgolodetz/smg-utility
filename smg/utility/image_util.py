@@ -22,8 +22,7 @@ class ImageUtil:
         :return:            The output image.
         """
         height, width = image.shape
-        # : np.ndarray
-        image_copy = image.copy()
+        image_copy = image.copy()  # type: np.ndarray
         image_copy[:border_size, :] = value
         image_copy[height - border_size:, :] = value
         image_copy[:, :border_size] = value
