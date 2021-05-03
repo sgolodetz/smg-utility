@@ -149,9 +149,9 @@ class Cylinder(Shape):
         :param top_radius:  The radius of the cylinder's top.
         """
         self.__base_centre = np.array(base_centre)  # type: np.ndarray
-        self.__base_radius = base_radius  # type: float
-        self.__top_centre = np.array(top_centre)  # type: np.ndarray
-        self.__top_radius = top_radius  # type: float
+        self.__base_radius = base_radius            # type: float
+        self.__top_centre = np.array(top_centre)    # type: np.ndarray
+        self.__top_radius = top_radius              # type: float
 
     # PROPERTIES
 
@@ -223,7 +223,7 @@ class Cylinder(Shape):
         # If the closest point on the axis is not outside the cylinder:
         if 0 <= t <= 1:
             # Compute the distance of the input point from the axis, and the radius of the cylinder at that point.
-            distance_from_axis = np.linalg.norm(vg.reject(offset, axis))  # type: float
+            distance_from_axis = np.linalg.norm(vg.reject(offset, axis))   # type: float
             radius = (1 - t) * self.__base_radius + t * self.__top_radius  # type: float
 
             # Check whether the input point is strictly within the cylinder or on its surface.
@@ -235,7 +235,6 @@ class Cylinder(Shape):
         # If we get here, the input point's outside the cylinder.
         return SC_OUTSIDE
 
-    # noinspection PyUnresolvedReferences
     def expand(self, radius: float) -> "Cylinder":
         """
         Make an expanded copy of the cylinder.
@@ -299,7 +298,7 @@ class Sphere(Shape):
         :param radius:  The radius of the sphere.
         """
         self.__centre = np.array(centre)  # type: np.ndarray
-        self.__radius = radius  # type: float
+        self.__radius = radius            # type: float
 
     # PROPERTIES
 
@@ -349,7 +348,6 @@ class Sphere(Shape):
         else:
             return SC_SURFACE
 
-    # noinspection PyUnresolvedReferences
     def expand(self, radius: float) -> "Sphere":
         """
         Make an expanded copy of the sphere.

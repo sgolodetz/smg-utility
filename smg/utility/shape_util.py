@@ -31,7 +31,7 @@ class ShapeUtil:
         for shape in shapes:
             # Round the shape bounds to the nearest voxel coordinates (away from zero).
             mins = np.floor(shape.mins() / voxel_size) * voxel_size  # type: np.ndarray
-            maxs = np.ceil(shape.maxs() / voxel_size) * voxel_size  # type: np.ndarray
+            maxs = np.ceil(shape.maxs() / voxel_size) * voxel_size   # type: np.ndarray
 
             # Work out the x, y and z values for the centres of the voxels that will need to be tested.
             vals = {}  # type: Dict[int, np.ndarray]

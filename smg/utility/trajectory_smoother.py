@@ -16,8 +16,8 @@ class TrajectorySmoother:
         """
         self.__half_neighbourhood_size = neighbourhood_size // 2 \
             if neighbourhood_size is not None else None  # type: Optional[int]
-        self.__raw_trajectory = []  # type: List[Tuple[float, np.ndarray]]
-        self.__smoothed_trajectory = []  # type: List[Tuple[float, np.ndarray]]
+        self.__raw_trajectory = []                       # type: List[Tuple[float, np.ndarray]]
+        self.__smoothed_trajectory = []                  # type: List[Tuple[float, np.ndarray]]
 
     # PUBLIC METHODS
 
@@ -34,9 +34,9 @@ class TrajectorySmoother:
         # If a neighbourhood size was specified (and therefore smoothing is enabled):
         if self.__half_neighbourhood_size is not None:
             # If possible, smooth an earlier timestamped pose and append it to the smoothed trajectory.
-            high = len(self.__raw_trajectory) - 1  # type: int
+            high = len(self.__raw_trajectory) - 1      # type: int
             i = high - self.__half_neighbourhood_size  # type: int
-            low = i - self.__half_neighbourhood_size  # type: int
+            low = i - self.__half_neighbourhood_size   # type: int
 
             if low >= 0:
                 t = np.zeros(3)  # type: np.ndarray

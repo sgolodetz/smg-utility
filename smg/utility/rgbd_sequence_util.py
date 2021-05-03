@@ -61,15 +61,15 @@ class RGBDSequenceUtil:
             calib_filename = RGBDSequenceUtil.__make_calibration_filename(sequence_dir)  # type: str
             if not os.path.exists(calib_filename):
                 colour_image_size = (colour_image.shape[1], colour_image.shape[0])  # type: Tuple[int, int]
-                depth_image_size = (depth_image.shape[1], depth_image.shape[0])  # type: Tuple[int, int]
+                depth_image_size = (depth_image.shape[1], depth_image.shape[0])     # type: Tuple[int, int]
                 RGBDSequenceUtil.save_calibration(
                     sequence_dir, colour_image_size, depth_image_size, colour_intrinsics, depth_intrinsics
                 )
 
         # Save the colour image, depth image and pose for the frame.
         colour_filename = os.path.join(sequence_dir, "frame-{:06d}.color.png".format(frame_idx))  # type: str
-        depth_filename = os.path.join(sequence_dir, "frame-{:06d}.depth.png".format(frame_idx))  # type: str
-        pose_filename = os.path.join(sequence_dir, "frame-{:06d}.pose.txt".format(frame_idx))  # type: str
+        depth_filename = os.path.join(sequence_dir, "frame-{:06d}.depth.png".format(frame_idx))   # type: str
+        pose_filename = os.path.join(sequence_dir, "frame-{:06d}.pose.txt".format(frame_idx))     # type: str
 
         cv2.imwrite(colour_filename, colour_image)
         ImageUtil.save_depth_image(depth_filename, depth_image)
@@ -102,8 +102,8 @@ class RGBDSequenceUtil:
         """
         # Determine the names of the colour image, depth image and pose files.
         colour_filename = os.path.join(sequence_dir, "frame-{:06d}.color.png".format(frame_idx))  # type: str
-        depth_filename = os.path.join(sequence_dir, "frame-{:06d}.depth.png".format(frame_idx))  # type: str
-        pose_filename = os.path.join(sequence_dir, "frame-{:06d}.pose.txt".format(frame_idx))  # type: str
+        depth_filename = os.path.join(sequence_dir, "frame-{:06d}.depth.png".format(frame_idx))   # type: str
+        pose_filename = os.path.join(sequence_dir, "frame-{:06d}.pose.txt".format(frame_idx))     # type: str
 
         # If any one of the files doesn't exist, early out.
         if not os.path.exists(colour_filename) \

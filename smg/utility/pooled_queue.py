@@ -54,7 +54,6 @@ class PooledQueue(Generic[T]):
 
         # CONSTRUCTOR
 
-        # noinspection PyUnresolvedReferences
         def __init__(self, base: "PooledQueue[T]", elt: Optional[T]):
             """
             Construct a push handler.
@@ -63,7 +62,7 @@ class PooledQueue(Generic[T]):
             :param elt:     The element that is to be pushed onto the queue (if any).
             """
             self.__base = base  # type: PooledQueue[T]
-            self.__elt = elt  # type: Optional[T]
+            self.__elt = elt    # type: Optional[T]
 
         # SPECIAL METHODS
 

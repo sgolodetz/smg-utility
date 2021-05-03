@@ -95,8 +95,8 @@ class GeometryUtil:
         #            (y1 y2 y3) * (1/3) = ((y1 + y2 + y3) / 3) = (cy)
         #            (z1 z2 z3) * (1/3) = ((z1 + z2 + z3) / 3) = (cz)
         nths = np.full((n, 1), 1 / n)  # type: np.ndarray
-        centroid_p = p.dot(nths)  # type: np.ndarray
-        centroid_q = q.dot(nths)  # type: np.ndarray
+        centroid_p = p.dot(nths)       # type: np.ndarray
+        centroid_q = q.dot(nths)       # type: np.ndarray
 
         # Step 3: Translate the points in each set so that their centroid coincides with the origin
         #         of the coordinate system. To do this, we subtract the centroid from each point.
@@ -104,7 +104,7 @@ class GeometryUtil:
         # centred = (x1 x2 x3) - (cx) * (1 1 1) = (x1 x2 x3) - (cx cx cx) = (x1-cx x2-cx x3-cx)
         #           (y1 y2 y3)   (cy)             (y1 y2 y3)   (cy cy cy)   (y1-cy y2-cy y3-cy)
         #           (z1 z2 z3)   (cz)             (z1 z2 z3)   (cz cz cz)   (z1-cz z2-cz z3-cz)
-        ones_t = np.ones((1, n))  # type: np.ndarray
+        ones_t = np.ones((1, n))                # type: np.ndarray
         centred_p = p - centroid_p.dot(ones_t)  # type: np.ndarray
         centred_q = q - centroid_q.dot(ones_t)  # type: np.ndarray
 
