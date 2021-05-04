@@ -1,5 +1,3 @@
-# -*- coding: future_annotations -*-
-
 import numpy as np
 import vg
 
@@ -28,13 +26,13 @@ class EShapeClassification(int):
 
 
 # {Inside/intersecting with} the shape.
-SC_INSIDE: EShapeClassification = EShapeClassification(0)
+SC_INSIDE = EShapeClassification(0)
 
 # {Outside/not touching} the shape.
-SC_OUTSIDE: EShapeClassification = EShapeClassification(1)
+SC_OUTSIDE = EShapeClassification(1)
 
 # {On the surface of/touching} the shape.
-SC_SURFACE: EShapeClassification = EShapeClassification(2)
+SC_SURFACE = EShapeClassification(2)
 
 
 # CLASSES
@@ -46,7 +44,7 @@ class ShapeVisitor(ABC):
     # PUBLIC ABSTRACT METHODSs
 
     @abstractmethod
-    def visit_cylinder(self, cylinder: Cylinder) -> None:
+    def visit_cylinder(self, cylinder: "Cylinder") -> None:
         """
         Visit a cylinder.
 
@@ -55,7 +53,7 @@ class ShapeVisitor(ABC):
         pass
 
     @abstractmethod
-    def visit_sphere(self, sphere: Sphere) -> None:
+    def visit_sphere(self, sphere: "Sphere") -> None:
         """
         Visit a sphere.
 
@@ -90,7 +88,7 @@ class Shape(ABC):
 
     # noinspection PyUnresolvedReferences
     @abstractmethod
-    def expand(self, radius: float) -> Shape:
+    def expand(self, radius: float) -> "Shape":
         """
         Make an expanded copy of the shape.
 
@@ -150,10 +148,10 @@ class Cylinder(Shape):
         :param top_centre:  The centre of the cylinder's top.
         :param top_radius:  The radius of the cylinder's top.
         """
-        self.__base_centre: np.ndarray = np.array(base_centre)
-        self.__base_radius: float = base_radius
-        self.__top_centre: np.ndarray = np.array(top_centre)
-        self.__top_radius: float = top_radius
+        self.__base_centre = np.array(base_centre)  # type: np.ndarray
+        self.__base_radius = base_radius            # type: float
+        self.__top_centre = np.array(top_centre)    # type: np.ndarray
+        self.__top_radius = top_radius              # type: float
 
     # PROPERTIES
 
@@ -214,19 +212,19 @@ class Cylinder(Shape):
         p = np.array(p)
 
         # Compute the offset of the point from the centre of the cylinder's base.
-        offset: np.ndarray = p - self.__base_centre
+        offset = p - self.__base_centre  # type: np.ndarray
 
         # Compute a vector along the axis of the cylinder.
-        axis: np.ndarray = self.__top_centre - self.__base_centre
+        axis = self.__top_centre - self.__base_centre  # type: np.ndarray
 
         # Work out how far along the cylinder's axis the closest point on the axis to the input point lies.
-        t: float = vg.scalar_projection(offset, axis) / np.linalg.norm(axis)
+        t = vg.scalar_projection(offset, axis) / np.linalg.norm(axis)  # type: float
 
         # If the closest point on the axis is not outside the cylinder:
         if 0 <= t <= 1:
             # Compute the distance of the input point from the axis, and the radius of the cylinder at that point.
-            distance_from_axis: float = np.linalg.norm(vg.reject(offset, axis))
-            radius: float = (1 - t) * self.__base_radius + t * self.__top_radius
+            distance_from_axis = np.linalg.norm(vg.reject(offset, axis))   # type: float
+            radius = (1 - t) * self.__base_radius + t * self.__top_radius  # type: float
 
             # Check whether the input point is strictly within the cylinder or on its surface.
             if 0 < t < 1 and distance_from_axis < radius:
@@ -237,15 +235,14 @@ class Cylinder(Shape):
         # If we get here, the input point's outside the cylinder.
         return SC_OUTSIDE
 
-    # noinspection PyUnresolvedReferences
-    def expand(self, radius: float) -> Cylinder:
+    def expand(self, radius: float) -> "Cylinder":
         """
         Make an expanded copy of the cylinder.
 
         :param radius:  The radius by which to expand the cylinder.
         :return:        The expanded copy of the cylinder.
         """
-        axis: np.ndarray = vg.normalize(self.__top_centre - self.__base_centre)
+        axis = vg.normalize(self.__top_centre - self.__base_centre)  # type: np.ndarray
         return Cylinder(
             base_centre=self.__base_centre - axis * radius,
             base_radius=self.__base_radius + radius,
@@ -300,8 +297,8 @@ class Sphere(Shape):
         :param centre:  The centre of the sphere.
         :param radius:  The radius of the sphere.
         """
-        self.__centre: np.ndarray = np.array(centre)
-        self.__radius: float = radius
+        self.__centre = np.array(centre)  # type: np.ndarray
+        self.__radius = radius            # type: float
 
     # PROPERTIES
 
@@ -342,7 +339,7 @@ class Sphere(Shape):
         """
         p = np.array(p)
 
-        distance: float = np.linalg.norm(p - self.__centre)
+        distance = np.linalg.norm(p - self.__centre)  # type: float
 
         if distance < self.__radius:
             return SC_INSIDE
@@ -351,8 +348,7 @@ class Sphere(Shape):
         else:
             return SC_SURFACE
 
-    # noinspection PyUnresolvedReferences
-    def expand(self, radius: float) -> Sphere:
+    def expand(self, radius: float) -> "Sphere":
         """
         Make an expanded copy of the sphere.
 

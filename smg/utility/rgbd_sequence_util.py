@@ -25,7 +25,7 @@ class RGBDSequenceUtil:
         :param colour_intrinsics:   The intrinsics of the colour camera, as an (fx, fy, cx, cy) tuple.
         :param depth_intrinsics:    The intrinsics of the depth camera, as an (fx, fy, cx, cy) tuple.
         """
-        camera_params: CameraParameters = CameraParameters()
+        camera_params = CameraParameters()  # type: CameraParameters
         camera_params.set("colour", *colour_image_size, *colour_intrinsics)
         camera_params.set("depth", *depth_image_size, *depth_intrinsics)
         camera_params.save(RGBDSequenceUtil.__make_calibration_filename(sequence_dir))
@@ -58,18 +58,18 @@ class RGBDSequenceUtil:
 
         # Save the camera intrinsics into the central file (if they've been provided).
         if colour_intrinsics is not None and depth_intrinsics is not None:
-            calib_filename: str = RGBDSequenceUtil.__make_calibration_filename(sequence_dir)
+            calib_filename = RGBDSequenceUtil.__make_calibration_filename(sequence_dir)  # type: str
             if not os.path.exists(calib_filename):
-                colour_image_size: Tuple[int, int] = (colour_image.shape[1], colour_image.shape[0])
-                depth_image_size: Tuple[int, int] = (depth_image.shape[1], depth_image.shape[0])
+                colour_image_size = (colour_image.shape[1], colour_image.shape[0])  # type: Tuple[int, int]
+                depth_image_size = (depth_image.shape[1], depth_image.shape[0])     # type: Tuple[int, int]
                 RGBDSequenceUtil.save_calibration(
                     sequence_dir, colour_image_size, depth_image_size, colour_intrinsics, depth_intrinsics
                 )
 
         # Save the colour image, depth image and pose for the frame.
-        colour_filename: str = os.path.join(sequence_dir, f"frame-{frame_idx:06d}.color.png")
-        depth_filename: str = os.path.join(sequence_dir, f"frame-{frame_idx:06d}.depth.png")
-        pose_filename: str = os.path.join(sequence_dir, f"frame-{frame_idx:06d}.pose.txt")
+        colour_filename = os.path.join(sequence_dir, "frame-{:06d}.color.png".format(frame_idx))  # type: str
+        depth_filename = os.path.join(sequence_dir, "frame-{:06d}.depth.png".format(frame_idx))   # type: str
+        pose_filename = os.path.join(sequence_dir, "frame-{:06d}.pose.txt".format(frame_idx))     # type: str
 
         cv2.imwrite(colour_filename, colour_image)
         ImageUtil.save_depth_image(depth_filename, depth_image)
@@ -101,9 +101,9 @@ class RGBDSequenceUtil:
         :return:                The RGB-D frame, if possible, or None otherwise.
         """
         # Determine the names of the colour image, depth image and pose files.
-        colour_filename: str = os.path.join(sequence_dir, f"frame-{frame_idx:06d}.color.png")
-        depth_filename: str = os.path.join(sequence_dir, f"frame-{frame_idx:06d}.depth.png")
-        pose_filename: str = os.path.join(sequence_dir, f"frame-{frame_idx:06d}.pose.txt")
+        colour_filename = os.path.join(sequence_dir, "frame-{:06d}.color.png".format(frame_idx))  # type: str
+        depth_filename = os.path.join(sequence_dir, "frame-{:06d}.depth.png".format(frame_idx))   # type: str
+        pose_filename = os.path.join(sequence_dir, "frame-{:06d}.pose.txt".format(frame_idx))     # type: str
 
         # If any one of the files doesn't exist, early out.
         if not os.path.exists(colour_filename) \

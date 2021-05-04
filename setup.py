@@ -15,16 +15,14 @@ setup(
     packages=find_packages(include=["smg.utility", "smg.utility.*"]),
     include_package_data=True,
     install_requires=[
-        "future-annotations",
         "numba",
         "numpy",
-        "opencv-contrib-python==3.4.2.16",
-        "pytypes @ git+https://github.com/sgolodetz/pytypes.git"
+        "opencv-contrib-python==3.4.2.16"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.5',
 )

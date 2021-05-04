@@ -10,4 +10,3 @@ from .shapes import *
 from .shape_util import ShapeUtil
 from .trajectory_smoother import TrajectorySmoother
 from .trajectory_util import TrajectoryUtil
-from .type_util import TypeUtil

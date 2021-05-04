@@ -17,7 +17,7 @@ class FiducialUtil:
         :param filename:    The name of the file containing the fiducials.
         :return:            A dictionary mapping fiducial names to positions in 3D space.
         """
-        fiducials: Dict[str, np.ndarray] = {}
+        fiducials = {}  # type: Dict[str, np.ndarray]
 
         vec_spec = r"\(\s*(.*?)\s+(.*?)\s+(.*?)\s*\)"
         line_spec = r".*?\s+(.*?)\s+" + vec_spec + r"\s+?" + vec_spec + r"\s+?" + vec_spec + r"\s+?" + vec_spec + ".*"
