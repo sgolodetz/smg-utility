@@ -45,6 +45,11 @@ class PriorityQueue(Generic[Ident, Key, Data]):
             self.key = key      # type: Optional[Key]
             self.data = data    # type: Optional[Data]
 
+        # SPECIAL METHODS
+
+        def __repr__(self) -> str:
+            return repr((self.ident, self.key, self.data))
+
     # CONSTRUCTOR
 
     def __init__(self, *, comparator: Callable[[Key, Key], bool] = operator.lt):
@@ -69,6 +74,9 @@ class PriorityQueue(Generic[Ident, Key, Data]):
         :return:    The number of elements in the priority queue.
         """
         return len(self.__dictionary)
+
+    def __repr__(self) -> str:
+        return repr(self.__heap)
 
     # PUBLIC METHODS
 
