@@ -48,6 +48,11 @@ class PriorityQueue(Generic[Ident, Key, Data]):
         # SPECIAL METHODS
 
         def __repr__(self) -> str:
+            """
+            Get a string representation of the element.
+
+            :return:    A string representation of the element.
+            """
             return repr((self.ident, self.key, self.data))
 
     # CONSTRUCTOR
@@ -76,6 +81,11 @@ class PriorityQueue(Generic[Ident, Key, Data]):
         return len(self.__dictionary)
 
     def __repr__(self) -> str:
+        """
+        Get a string representation of the priority queue.
+
+        :return:    A string representation of the priority queue.
+        """
         return repr(self.__heap)
 
     # PUBLIC METHODS
