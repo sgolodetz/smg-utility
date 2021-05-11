@@ -11,7 +11,7 @@ class EShapeClassification(int):
 
     # SPECIAL METHODS
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Get a string representation of the result of classifying something against a shape.
 
