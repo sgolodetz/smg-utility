@@ -1,0 +1,2 @@
+class DualQuaternion:
+    pass

@@ -1,4 +1,5 @@
 from .camera_parameters import CameraParameters
+from .dual_number import DualNumber
 from .fiducial_util import FiducialUtil
 from .geometry_util import GeometryUtil
 from .image_util import ImageUtil
