@@ -43,7 +43,7 @@ class DualNumber:
         Add another dual number to this one.
 
         :param rhs: The other dual number.
-        :return:    The result of adding another dual number to this one.
+        :return:    The result of the operation.
         """
         copy = self.copy()  # type: DualNumber
         copy += rhs
@@ -87,7 +87,7 @@ class DualNumber:
         Multiply this dual number by another one.
 
         :param rhs: The other dual number.
-        :return:    The result of multiplying this dual number by the other one.
+        :return:    The result of the operation.
         """
         copy = self.copy()  # type: DualNumber
         copy *= rhs
@@ -122,7 +122,7 @@ class DualNumber:
         Subtract another dual number from this one.
 
         :param rhs: The other dual number.
-        :return:    The result of subtracting another dual number from this one.
+        :return:    The result of the operation.
         """
         copy = self.copy()    # type: DualNumber
         copy -= rhs

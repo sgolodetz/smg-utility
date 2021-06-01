@@ -8,7 +8,10 @@ from .pooled_queue import PooledQueue
 from .pose_util import PoseUtil
 from .priority_queue import PriorityQueue
 from .rgbd_sequence_util import RGBDSequenceUtil
+from .screw import Screw
 from .shapes import *
 from .shape_util import ShapeUtil
 from .trajectory_smoother import TrajectorySmoother
 from .trajectory_util import TrajectoryUtil
+
+from .dual_quaternion import DualQuaternion
