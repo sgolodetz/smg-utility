@@ -45,6 +45,9 @@ class DualNumber:
         :param rhs: The other dual number.
         :return:    The result of the operation.
         """
+        if type(rhs) is not DualNumber:
+            return NotImplemented
+
         copy = self.copy()  # type: DualNumber
         copy += rhs
         return copy
@@ -89,6 +92,9 @@ class DualNumber:
         :param rhs: The other dual number.
         :return:    The result of the operation.
         """
+        if type(rhs) is not DualNumber:
+            return NotImplemented
+
         copy = self.copy()  # type: DualNumber
         copy *= rhs
         return copy
@@ -124,6 +130,9 @@ class DualNumber:
         :param rhs: The other dual number.
         :return:    The result of the operation.
         """
+        if type(rhs) is not DualNumber:
+            return NotImplemented
+
         copy = self.copy()    # type: DualNumber
         copy -= rhs
         return copy

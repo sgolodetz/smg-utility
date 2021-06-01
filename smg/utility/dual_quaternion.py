@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 from scipy.spatial.transform import Rotation
-from typing import Iterable, List, Union
+from typing import List, Union
 
 from .dual_number import DualNumber
 from .screw import Screw
@@ -152,7 +152,7 @@ class DualQuaternion:
         :raises RuntimeError:   If the rotation axis is invalid.
         """
         # Make sure that the axis is a numpy array.
-        axis = np.array(axis)  # type: np.ndarray
+        axis = np.array(axis).astype(float)  # type: np.ndarray
 
         # If the axis needs to be normalised:
         axis_length_squared = np.dot(axis, axis)  # type: float
@@ -181,7 +181,7 @@ class DualQuaternion:
         :param p:   The point.
         :return:    The dual quaternion.
         """
-        p = np.array(p)  # type: np.ndarray
+        p = np.array(p).astype(float)  # type: np.ndarray
 
         return DualQuaternion(
             DualNumber(1, 0),
@@ -198,7 +198,7 @@ class DualQuaternion:
         :param rot: The Lie rotation vector.
         :return:    The dual quaternion.
         """
-        rot = np.array(rot)  # type: np.ndarray
+        rot = np.array(rot).astype(float)  # type: np.ndarray
         length_squared = np.dot(rot, rot)  # type: float
         if length_squared > 1e-6:
             length = math.sqrt(length_squared)  # type: float
@@ -232,7 +232,7 @@ class DualQuaternion:
         :param t:   The translation vector.
         :return:    The dual quaternion.
         """
-        t = np.array(t)  # type: np.ndarray
+        t = np.array(t).astype(float)  # type: np.ndarray
 
         return DualQuaternion(
             DualNumber(1, 0),
@@ -288,7 +288,7 @@ class DualQuaternion:
         :param p:   The 3D point.
         :return:    The transformed point.
         """
-        p = np.array(p)  # type: np.ndarray
+        p = np.array(p).astype(float)  # type: np.ndarray
         result = self.copy()  # type: DualQuaternion
         result *= DualQuaternion.from_point(p)
         result *= self.dual_conjugate()
@@ -349,7 +349,7 @@ class DualQuaternion:
         :return:    The translation component of the rigid-body transform represented by the dual quaternion.
         """
         tp = self.get_translation_part()  # type: DualQuaternion
-        return 2.0 * np.array(tp.x.d, tp.y.d, tp.z.d)
+        return 2.0 * np.array([tp.x.d, tp.y.d, tp.z.d])
 
     def get_translation_part(self) -> "DualQuaternion":
         """
