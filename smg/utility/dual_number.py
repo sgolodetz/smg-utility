@@ -22,20 +22,6 @@ class DualNumber:
         self.r = float(r)  # type: float
         self.d = float(d)  # type: float
 
-    # PUBLIC STATIC METHODS
-
-    @staticmethod
-    def close(lhs: "DualNumber", rhs: "DualNumber", tolerance: float = 1e-4) -> bool:
-        """
-        Check whether two dual numbers are approximately equal, up to a tolerance.
-
-        :param lhs:         The first dual number.
-        :param rhs:         The second dual number.
-        :param tolerance:   The tolerance value.
-        :return:            True, if the two dual numbers are approximately equal, or False otherwise.
-        """
-        return abs(lhs.r - rhs.r) <= tolerance and abs(lhs.d - rhs.d) <= tolerance
-
     # SPECIAL METHODS
 
     def __add__(self, rhs: "DualNumber") -> "DualNumber":
@@ -136,6 +122,20 @@ class DualNumber:
         copy = self.copy()    # type: DualNumber
         copy -= rhs
         return copy
+
+    # PUBLIC STATIC METHODS
+
+    @staticmethod
+    def close(lhs: "DualNumber", rhs: "DualNumber", tolerance: float = 1e-4) -> bool:
+        """
+        Check whether two dual numbers are approximately equal, up to a tolerance.
+
+        :param lhs:         The first dual number.
+        :param rhs:         The second dual number.
+        :param tolerance:   The tolerance value.
+        :return:            True, if the two dual numbers are approximately equal, or False otherwise.
+        """
+        return abs(lhs.r - rhs.r) <= tolerance and abs(lhs.d - rhs.d) <= tolerance
 
     # PUBLIC METHODS
 

@@ -64,7 +64,6 @@ class DualQuaternion:
         # Note that it's possible to optimise this if necessary. See:
         #
         # https://github.com/sgolodetz/hesperus2/blob/master/source/engine/core/hesp/math/quaternions/Quaternion.cpp
-
         return DualQuaternion(
             self.w * rhs.w - self.x * rhs.x - self.y * rhs.y - self.z * rhs.z,
             self.w * rhs.x + self.x * rhs.w + self.y * rhs.z - self.z * rhs.y,

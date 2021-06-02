@@ -146,11 +146,14 @@ class GeometryUtil:
         return m
 
     @staticmethod
-    def find_largest_cluster(transforms: List[np.ndarray], *, rotation_threshold: float,
-                             translation_threshold: float) -> List[int]:
+    def find_largest_cluster(transforms: List[np.ndarray], *, rotation_threshold: float = 20 * math.pi / 180,
+                             translation_threshold: float = 0.05) -> Optional[List[int]]:
         """
-        Cluster the specified rigid-body transforms and return the indices of the transforms in a largest cluster.
+        Try to cluster the specified rigid-body transforms and return the indices of the transforms in a largest
+        cluster.
 
+        .. note::
+            If the list of input transforms is empty, there is no largest cluster, so this returns None.
         .. note::
             If there's more than one largest cluster, only one of them will be returned, but the result will always
             be the same for the same (ordered) list of input transforms (i.e. there's no randomness involved).
@@ -158,7 +161,8 @@ class GeometryUtil:
         :param transforms:              The input transforms.
         :param rotation_threshold:      The angular threshold to use when comparing rotations.
         :param translation_threshold:   The distance threshold to use when comparing translations.
-        :return:                        The indices of the transforms in a largest cluster, as described above.
+        :return:                        The indices of the transforms in a largest cluster, if possible, or None
+                                        otherwise.
         """
         clusters = defaultdict(list)  # type: Dict[int, List[int]]
 
@@ -181,8 +185,8 @@ class GeometryUtil:
                 largest_cluster_index = i
                 largest_cluster_size = cluster_size
 
-        # Return the largest cluster.
-        return clusters[largest_cluster_index]
+        # Return the largest cluster, if there is one, or None otherwise.
+        return clusters[largest_cluster_index] if largest_cluster_index != -1 else None
 
     @staticmethod
     def find_reprojection_correspondences(
@@ -428,7 +432,7 @@ class GeometryUtil:
                                rotation_threshold: float = 20 * math.pi / 180,
                                translation_threshold: float = 0.05) -> bool:
         """
-        Determine whether or not two SE(3) transforms are sufficiently similar.
+        Determine whether or not two SE(3) transforms are similar.
 
         .. note::
             Similarity is defined in terms of both the rotations and translations involved. Rotation similarity is
@@ -440,7 +444,7 @@ class GeometryUtil:
         :param transform2:              The second rigid-body transform.
         :param rotation_threshold:      The angular threshold to use when comparing the rotations.
         :param translation_threshold:   The distance threshold to use when comparing the translations.
-        :return:                        True, if the transforms are sufficiently similar, or False otherwise.
+        :return:                        True, if the transforms are similar, or False otherwise.
         """
         dq1 = transform1 if type(transform1) is DualQuaternion \
             else DualQuaternion.from_rigid_matrix(transform1)  # type: DualQuaternion
