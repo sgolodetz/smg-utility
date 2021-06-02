@@ -452,7 +452,7 @@ class GeometryUtil:
             else DualQuaternion.from_rigid_matrix(transform2)  # type: DualQuaternion
 
         rot = DualQuaternion.angle_between_rotations(dq1.get_rotation_part(), dq2.get_rotation_part())  # type: float
-        trans = np.linalg.norm(dq1.get_translation() - dq2.get_translation())  # type: float
+        trans = np.linalg.norm(dq1.get_translation() - dq2.get_translation())                           # type: float
 
         return rot <= rotation_threshold and trans <= translation_threshold
 
