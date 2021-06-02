@@ -191,6 +191,18 @@ class DualQuaternion:
         )
 
     @staticmethod
+    def from_rigid_matrix(m: np.ndarray) -> "DualQuaternion":
+        """
+        Construct a dual quaternion from a rigid-body matrix.
+
+        :param m:   The rigid-body matrix.
+        :return:    The dual quaternion.
+        """
+        rot = Rotation.from_matrix(m[0:3, 0:3]).as_rotvec()  # type: np.ndarray
+        trans = m[0:3, 3]  # type: np.ndarray
+        return DualQuaternion.from_translation(trans) * DualQuaternion.from_rotation_vector(rot)
+
+    @staticmethod
     def from_rotation_vector(rot) -> "DualQuaternion":
         """
         Construct a dual quaternion that corresponds to a rotation expressed as a Lie rotation vector.
@@ -402,6 +414,17 @@ class DualQuaternion:
         self.y = rhs.y.copy()
         self.z = rhs.z.copy()
         return self
+
+    def to_rigid_matrix(self) -> np.ndarray:
+        """
+        Calculate the rigid-body matrix corresponding to the dual quaternion.
+
+        :return:    The rigid-body matrix corresponding to the dual quaternion.
+        """
+        m = np.eye(4)  # type: np.ndarray
+        m[0:3, 0:3] = Rotation.from_quat([self.x.r, self.y.r, self.z.r, self.w.r]).as_matrix()
+        m[0:3, 3] = self.get_translation()
+        return m
 
     def to_screw(self) -> Screw:
         """

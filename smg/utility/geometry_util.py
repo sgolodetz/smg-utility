@@ -5,6 +5,7 @@ from itertools import product
 from numba import cuda
 from typing import Dict, List, Optional, Tuple
 
+from .dual_quaternion import DualQuaternion
 from .image_util import ImageUtil
 from .numba_util import NumbaUtil
 
@@ -313,6 +314,33 @@ class GeometryUtil:
             new_image_size[0] / old_image_size[0], new_image_size[1] / old_image_size[1]
         )  # type: Tuple[float, float]
         return fx * fractions[0], fy * fractions[1], cx * fractions[0], cy * fractions[1]
+
+    @staticmethod
+    def poses_are_similar(pose1: np.ndarray, pose2: np.ndarray, *,
+                          rotation_threshold: float = 20 * math.pi / 180,
+                          translation_threshold: float = 0.05) -> bool:
+        """
+        Determine whether or not two SE(3) poses are sufficiently similar.
+
+        .. note::
+            Similarity is defined in terms of both the rotations and translations involved. Rotation similarity is
+            assessed by looking at the relative rotation mapping one of the two input rotations to the other, and
+            thresholding the angle involved. Translation similarity is assessed by thresholding the distance between
+            the two input translations. Iff both their rotations and translations are similar, so are the poses.
+
+        :param pose1:                   The first pose.
+        :param pose2:                   The second pose.
+        :param rotation_threshold:      The angular threshold to use when comparing the rotations.
+        :param translation_threshold:   The distance threshold to use when comparing the translations.
+        :return:                        True, if the poses are sufficiently similar, or False otherwise.
+        """
+        dq1 = DualQuaternion.from_rigid_matrix(pose1)  # type: DualQuaternion
+        dq2 = DualQuaternion.from_rigid_matrix(pose2)  # type: DualQuaternion
+
+        rot = DualQuaternion.angle_between_rotations(dq1.get_rotation_part(), dq2.get_rotation_part())  # type: float
+        trans = np.linalg.norm(dq1.get_translation() - dq2.get_translation())                           # type: float
+
+        return rot <= rotation_threshold and trans <= translation_threshold
 
     @staticmethod
     def select_pixels_from(target_image: np.ndarray, selection_image: np.ndarray, *, invalid_value=0) -> np.ndarray:
