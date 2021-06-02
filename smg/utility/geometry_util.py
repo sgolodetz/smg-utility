@@ -1,9 +1,10 @@
 import math
 import numpy as np
 
+from collections import defaultdict
 from itertools import product
 from numba import cuda
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from .dual_quaternion import DualQuaternion
 from .image_util import ImageUtil
@@ -25,6 +26,19 @@ class GeometryUtil:
         :return:        The result of applying the rigid-body transform to the 3D vector.
         """
         return GeometryUtil.to_3x4(mat4x4) @ np.array([*vec3, 1.0])
+
+    @staticmethod
+    def blend_rigid_transforms(transforms: List[np.ndarray]) -> np.ndarray:
+        """
+        Linearly blend a set of rigid-body transforms together to construct a refined transform.
+
+        :param transforms:  The transforms to blend.
+        :return:            The refined transform.
+        """
+        dqs = [DualQuaternion.from_rigid_matrix(m) for m in transforms]  # type: List[DualQuaternion]
+        weight = 1.0 / len(transforms)                                   # type: float
+        weights = [weight for _ in transforms]                           # type: List[float]
+        return DualQuaternion.linear_blend(dqs, weights).to_rigid_matrix()
 
     @staticmethod
     def compute_world_points_image(depth_image: np.ndarray, depth_mask: np.ndarray, pose: np.ndarray,
@@ -130,6 +144,45 @@ class GeometryUtil:
         m[0:3, 0:3] = r
         m[0:3, 3] = np.transpose(t)
         return m
+
+    @staticmethod
+    def find_largest_cluster(transforms: List[np.ndarray], *, rotation_threshold: float,
+                             translation_threshold: float) -> List[int]:
+        """
+        Cluster the specified rigid-body transforms and return the indices of the transforms in a largest cluster.
+
+        .. note::
+            If there's more than one largest cluster, only one of them will be returned, but the result will always
+            be the same for the same (ordered) list of input transforms (i.e. there's no randomness involved).
+
+        :param transforms:              The input transforms.
+        :param rotation_threshold:      The angular threshold to use when comparing rotations.
+        :param translation_threshold:   The distance threshold to use when comparing translations.
+        :return:                        The indices of the transforms in a largest cluster, as described above.
+        """
+        clusters = defaultdict(list)  # type: Dict[int, List[int]]
+
+        largest_cluster_index = -1    # type: int
+        largest_cluster_size = 0      # type: int
+
+        # For each transforms:
+        for i in range(len(transforms)):
+            # Compute the cluster for the transform.
+            for j in range(len(transforms)):
+                if GeometryUtil.transforms_are_similar(
+                    transforms[i], transforms[j],
+                    rotation_threshold=rotation_threshold, translation_threshold=translation_threshold
+                ):
+                    clusters[i].append(j)
+
+            # Update which cluster is the largest as necessary.
+            cluster_size = len(clusters[i])  # type: int
+            if cluster_size > largest_cluster_size:
+                largest_cluster_index = i
+                largest_cluster_size = cluster_size
+
+        # Return the largest cluster.
+        return clusters[largest_cluster_index]
 
     @staticmethod
     def find_reprojection_correspondences(
@@ -316,33 +369,6 @@ class GeometryUtil:
         return fx * fractions[0], fy * fractions[1], cx * fractions[0], cy * fractions[1]
 
     @staticmethod
-    def poses_are_similar(pose1: np.ndarray, pose2: np.ndarray, *,
-                          rotation_threshold: float = 20 * math.pi / 180,
-                          translation_threshold: float = 0.05) -> bool:
-        """
-        Determine whether or not two SE(3) poses are sufficiently similar.
-
-        .. note::
-            Similarity is defined in terms of both the rotations and translations involved. Rotation similarity is
-            assessed by looking at the relative rotation mapping one of the two input rotations to the other, and
-            thresholding the angle involved. Translation similarity is assessed by thresholding the distance between
-            the two input translations. Iff both their rotations and translations are similar, so are the poses.
-
-        :param pose1:                   The first pose.
-        :param pose2:                   The second pose.
-        :param rotation_threshold:      The angular threshold to use when comparing the rotations.
-        :param translation_threshold:   The distance threshold to use when comparing the translations.
-        :return:                        True, if the poses are sufficiently similar, or False otherwise.
-        """
-        dq1 = DualQuaternion.from_rigid_matrix(pose1)  # type: DualQuaternion
-        dq2 = DualQuaternion.from_rigid_matrix(pose2)  # type: DualQuaternion
-
-        rot = DualQuaternion.angle_between_rotations(dq1.get_rotation_part(), dq2.get_rotation_part())  # type: float
-        trans = np.linalg.norm(dq1.get_translation() - dq2.get_translation())                           # type: float
-
-        return rot <= rotation_threshold and trans <= translation_threshold
-
-    @staticmethod
     def select_pixels_from(target_image: np.ndarray, selection_image: np.ndarray, *, invalid_value=0) -> np.ndarray:
         """
         Select pixels from a target image based on a selection image.
@@ -395,6 +421,36 @@ class GeometryUtil:
         mat4x4 = np.eye(4)  # type: np.ndarray
         mat4x4[0:3, :] = mat3x4
         return mat4x4
+
+    @staticmethod
+    def transforms_are_similar(transform1: Union[DualQuaternion, np.ndarray],
+                               transform2: Union[DualQuaternion, np.ndarray], *,
+                               rotation_threshold: float = 20 * math.pi / 180,
+                               translation_threshold: float = 0.05) -> bool:
+        """
+        Determine whether or not two SE(3) transforms are sufficiently similar.
+
+        .. note::
+            Similarity is defined in terms of both the rotations and translations involved. Rotation similarity is
+            assessed by looking at the relative rotation mapping one of the two input rotations to the other, and
+            thresholding the angle involved. Translation similarity is assessed by thresholding the distance between
+            the two input translations. Iff both their rotations and translations are similar, so are the transforms.
+
+        :param transform1:              The first rigid-body transform.
+        :param transform2:              The second rigid-body transform.
+        :param rotation_threshold:      The angular threshold to use when comparing the rotations.
+        :param translation_threshold:   The distance threshold to use when comparing the translations.
+        :return:                        True, if the transforms are sufficiently similar, or False otherwise.
+        """
+        dq1 = transform1 if type(transform1) is DualQuaternion \
+            else DualQuaternion.from_rigid_matrix(transform1)  # type: DualQuaternion
+        dq2 = transform2 if type(transform2) is DualQuaternion \
+            else DualQuaternion.from_rigid_matrix(transform2)  # type: DualQuaternion
+
+        rot = DualQuaternion.angle_between_rotations(dq1.get_rotation_part(), dq2.get_rotation_part())  # type: float
+        trans = np.linalg.norm(dq1.get_translation() - dq2.get_translation())  # type: float
+
+        return rot <= rotation_threshold and trans <= translation_threshold
 
     # PRIVATE STATIC CUDA KERNELS
 
