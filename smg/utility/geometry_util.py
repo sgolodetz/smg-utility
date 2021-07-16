@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import vg
 
 from collections import defaultdict
 from itertools import product
@@ -39,6 +40,20 @@ class GeometryUtil:
         weight = 1.0 / len(transforms)                                   # type: float
         weights = [weight for _ in transforms]                           # type: List[float]
         return DualQuaternion.linear_blend(dqs, weights).to_rigid_matrix()
+
+    @staticmethod
+    def compute_closest_point_on_ray(point: np.ndarray, start: np.ndarray, direction: np.ndarray) -> np.ndarray:
+        """
+        TODO
+
+        :param point:       TODO
+        :param start:       TODO
+        :param direction:   TODO
+        :return:            TODO
+        """
+        direction = vg.normalize(direction)
+        t: float = np.dot(point - start, direction)
+        return start + t * direction if t > 0 else start
 
     @staticmethod
     def compute_world_points_image(depth_image: np.ndarray, depth_mask: np.ndarray, pose: np.ndarray,
