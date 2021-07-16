@@ -42,20 +42,6 @@ class GeometryUtil:
         return DualQuaternion.linear_blend(dqs, weights).to_rigid_matrix()
 
     @staticmethod
-    def compute_closest_point_on_ray(point: np.ndarray, start: np.ndarray, direction: np.ndarray) -> np.ndarray:
-        """
-        TODO
-
-        :param point:       TODO
-        :param start:       TODO
-        :param direction:   TODO
-        :return:            TODO
-        """
-        direction = vg.normalize(direction)
-        t: float = np.dot(point - start, direction)
-        return start + t * direction if t > 0 else start
-
-    @staticmethod
     def compute_world_points_image(depth_image: np.ndarray, depth_mask: np.ndarray, pose: np.ndarray,
                                    fx: float, fy: float, cx: float, cy: float, ws_points: np.ndarray) -> None:
         """
@@ -159,6 +145,20 @@ class GeometryUtil:
         m[0:3, 0:3] = r
         m[0:3, 3] = np.transpose(t)
         return m
+
+    @staticmethod
+    def find_closest_point_on_half_ray(point: np.ndarray, start: np.ndarray, direction: np.ndarray) -> np.ndarray:
+        """
+        Find the closest point on a half-ray to the specified point.
+
+        :param point:       The specified point.
+        :param start:       The start of the half-ray.
+        :param direction:   The direction of the half-ray.
+        :return:            The closest point on the half-ray to the specified point.
+        """
+        direction = vg.normalize(direction)
+        t: float = np.dot(point - start, direction)
+        return start + t * direction if t > 0 else start
 
     @staticmethod
     def find_largest_cluster(transforms: List[np.ndarray], *, rotation_threshold: float = 20 * math.pi / 180,
