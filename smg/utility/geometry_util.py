@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import vg
 
 from collections import defaultdict
 from itertools import product
@@ -144,6 +145,20 @@ class GeometryUtil:
         m[0:3, 0:3] = r
         m[0:3, 3] = np.transpose(t)
         return m
+
+    @staticmethod
+    def find_closest_point_on_half_ray(point: np.ndarray, start: np.ndarray, direction: np.ndarray) -> np.ndarray:
+        """
+        Find the closest point on a half-ray to the specified point.
+
+        :param point:       The specified point.
+        :param start:       The start of the half-ray.
+        :param direction:   The direction of the half-ray.
+        :return:            The closest point on the half-ray to the specified point.
+        """
+        direction = vg.normalize(direction)
+        t: float = np.dot(point - start, direction)
+        return start + t * direction if t > 0 else start
 
     @staticmethod
     def find_largest_cluster(transforms: List[np.ndarray], *, rotation_threshold: float = 20 * math.pi / 180,
