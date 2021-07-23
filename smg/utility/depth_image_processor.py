@@ -23,7 +23,7 @@ class DepthImageProcessor:
             if area < min_region_size:
                 replace[i] = 0
 
-        indexer = np.array([replace.get(i, i) for i in range(np.min(segmentation), np.max(segmentation) + 1)])
+        indexer = np.array([replace.get(i, i) for i in range(0, np.max(segmentation) + 1)])
 
         segmentation = indexer[segmentation]
         depth_image = np.where(segmentation != 0, depth_image, 0.0)
