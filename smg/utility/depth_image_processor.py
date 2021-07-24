@@ -6,7 +6,8 @@ from numba import cuda
 from timeit import default_timer as timer
 from typing import Dict, Tuple
 
-from smg.utility import ImageUtil, NumbaUtil
+from .image_util import ImageUtil
+from .numba_util import NumbaUtil
 
 
 class DepthImageProcessor:
