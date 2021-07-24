@@ -91,7 +91,7 @@ class ImageUtil:
         :param depth_scale_factor:  The factor by which to divide the depths during the conversion.
         :return:                    The floating-point depth image.
         """
-        return short_depth_image / depth_scale_factor
+        return (short_depth_image / depth_scale_factor).astype(np.float32)
 
     @staticmethod
     def load_default_palette() -> np.ndarray:
