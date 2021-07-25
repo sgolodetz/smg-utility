@@ -16,6 +16,15 @@ class DepthImageProcessor:
     @staticmethod
     def remove_isolated_regions(depth_image: np.ndarray, segmentation: np.ndarray, stats: np.ndarray,
                                 *, min_region_size: int) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        TODO
+
+        :param depth_image:     TODO
+        :param segmentation:    TODO
+        :param stats:           TODO
+        :param min_region_size: TODO
+        :return:                TODO
+        """
         replace = {}  # type: Dict[int, int]
         for i in range(stats.shape[0]):
             area = stats[i, cv2.CC_STAT_AREA]
@@ -31,6 +40,17 @@ class DepthImageProcessor:
 
     @staticmethod
     def segment_depth_image(depth_image: np.ndarray, *, threshold: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Segment a depth image into regions such that all of the pixels in each region have similar depth.
+
+        .. note::
+            We use a 5x5 neighbourhood rather than a 3x3 one, as it leads to more reliable depth edges.
+
+        :param depth_image: The depth image to segment.
+        :param threshold:   The maximum depth difference to allow between two neighbouring pixels in the same region.
+        :return:            A tuple consisting of the segmentation image, the associated statistics of its regions,
+                            and the depth edge map that was used to construct the segmentation.
+        """
         # Make the depth edge map.
         depth_edges = np.full_like(depth_image, 255, dtype=np.uint8)  # type: np.ndarray
         DepthImageProcessor.__make_depth_edge_map(depth_image, depth_edges, threshold)
@@ -44,6 +64,13 @@ class DepthImageProcessor:
 
     @staticmethod
     def __make_depth_edge_map(depth_image, depth_edges, threshold: float) -> None:
+        """
+        TODO
+
+        :param depth_image: TODO
+        :param depth_edges: TODO
+        :param threshold:   TODO
+        """
         NumbaUtil.launch_kernel_2d(
             DepthImageProcessor.__ck_make_depth_edge_map, depth_image, depth_edges, threshold,
             grid_size=depth_image.shape
@@ -54,6 +81,13 @@ class DepthImageProcessor:
     @staticmethod
     @cuda.jit
     def __ck_make_depth_edge_map(depth_image, depth_edges, threshold: float):
+        """
+        TODO
+
+        :param depth_image: TODO
+        :param depth_edges: TODO
+        :param threshold:   TODO
+        """
         # noinspection PyArgumentList
         cy, cx = cuda.grid(2)
         if cy < depth_image.shape[0] and cx < depth_image.shape[1]:
