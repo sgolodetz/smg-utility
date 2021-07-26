@@ -91,7 +91,7 @@ class ImageUtil:
         :param depth_scale_factor:  The factor by which to divide the depths during the conversion.
         :return:                    The floating-point depth image.
         """
-        return short_depth_image / depth_scale_factor
+        return (short_depth_image / depth_scale_factor).astype(np.float32)
 
     @staticmethod
     def load_default_palette() -> np.ndarray:
@@ -145,6 +145,9 @@ class ImageUtil:
     def __ck_apply_palette(palette, segmentation, segmentation_bgr) -> None:
         """
         Apply a palette to the specified segmentation to produce a colourised version of it.
+
+        .. note::
+            This CUDA kernel must be invoked using numba.
 
         :param palette:             The palette.
         :param segmentation:        The segmentation.
