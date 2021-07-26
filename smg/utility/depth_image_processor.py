@@ -17,13 +17,14 @@ class DepthImageProcessor:
     def remove_small_regions(depth_image: np.ndarray, segmentation: np.ndarray, stats: np.ndarray,
                              *, min_region_size: int) -> Tuple[np.ndarray, np.ndarray]:
         """
-        TODO
+        Remove small regions from a depth image (as identified by a previous segmentation of the depth image).
 
-        :param depth_image:     TODO
-        :param segmentation:    TODO
-        :param stats:           TODO
-        :param min_region_size: TODO
-        :return:                TODO
+        :param depth_image:     The depth image.
+        :param segmentation:    A previous segmentation of the depth image.
+        :param stats:           The region statistics associated with the segmentation.
+        :param min_region_size: The minimum size of region to keep (that is, regions smaller than this will have
+                                their depths set to zero).
+        :return:                A copy of the depth image from which the small regions have been removed.
         """
         replace = {}  # type: Dict[int, int]
         for i in range(stats.shape[0]):
@@ -67,10 +68,11 @@ class DepthImageProcessor:
     @staticmethod
     def __make_depth_edge_map(depth_image, depth_edges, max_depth_difference: float) -> None:
         """
-        TODO
+        Make a depth edge map in which a pixel is marked as a depth edge if the maximum absolute difference between
+        its own depth and that of one of its neighbours exceeds the specified threshold.
 
-        :param depth_image:             TODO
-        :param depth_edges:             TODO
+        :param depth_image:             The input depth image.
+        :param depth_edges:             The output depth edge map.
         :param max_depth_difference:    The maximum depth difference to allow between two neighbouring pixels in the
                                         same region.
         """
@@ -85,30 +87,36 @@ class DepthImageProcessor:
     @cuda.jit
     def __ck_make_depth_edge_map(depth_image, depth_edges, max_depth_difference: float):
         """
-        TODO
+        Make a depth edge map in which a pixel is marked as a depth edge if the maximum absolute difference between
+        its own depth and that of one of its neighbours exceeds the specified threshold.
 
-        :param depth_image:             TODO
-        :param depth_edges:             TODO
+        .. note::
+            This CUDA kernel must be invoked using numba.
+
+        :param depth_image:             The input depth image.
+        :param depth_edges:             The output depth edge map.
         :param max_depth_difference:    The maximum depth difference to allow between two neighbouring pixels in the
                                         same region.
         """
         # noinspection PyArgumentList
         cy, cx = cuda.grid(2)
+
         if cy < depth_image.shape[0] and cx < depth_image.shape[1]:
+            # Get the depth of the current pixel.
             cdepth: float = depth_image[cy, cx]
 
+            # For each potential neighbour of the current pixel:
             k_squared: int = 25
             k: int = int(math.sqrt(float(k_squared)))
             centre: int = k_squared // 2
             half_k: int = k // 2
 
-            # For each potential neighbour of the current pixel:
             for i in range(k_squared):
                 dy, dx = divmod(i, k)
                 x = cx - half_k + dx
                 y = cy - half_k + dy
 
-                # Skip the current pixel and any neighbours that are outside the image bounds.
+                # Skip the current pixel itself and any of its neighbours that are outside the image bounds.
                 if not(i != centre and 0 <= y < depth_image.shape[0] and 0 <= x < depth_image.shape[1]):
                     continue
 

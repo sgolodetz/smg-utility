@@ -146,6 +146,9 @@ class ImageUtil:
         """
         Apply a palette to the specified segmentation to produce a colourised version of it.
 
+        .. note::
+            This CUDA kernel must be invoked using numba.
+
         :param palette:             The palette.
         :param segmentation:        The segmentation.
         :param segmentation_bgr:    An output image into which to write the colourised version of the segmentation.
