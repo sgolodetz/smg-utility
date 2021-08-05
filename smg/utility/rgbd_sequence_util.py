@@ -13,6 +13,16 @@ class RGBDSequenceUtil:
     # PUBLIC STATIC METHODS
 
     @staticmethod
+    def make_calibration_filename(sequence_dir: str) -> str:
+        """
+        Make the name of the file containing the camera parameters for a sequence.
+
+        :param sequence_dir:    The sequence directory.
+        :return:                The name of the file containing the camera parameters for the sequence.
+        """
+        return os.path.join(sequence_dir, "calib.json")
+
+    @staticmethod
     def save_calibration(sequence_dir: str, colour_image_size: Tuple[int, int], depth_image_size: Tuple[int, int],
                          colour_intrinsics: Tuple[float, float, float, float],
                          depth_intrinsics: Tuple[float, float, float, float]) -> None:
@@ -28,7 +38,7 @@ class RGBDSequenceUtil:
         camera_params = CameraParameters()  # type: CameraParameters
         camera_params.set("colour", *colour_image_size, *colour_intrinsics)
         camera_params.set("depth", *depth_image_size, *depth_intrinsics)
-        camera_params.save(RGBDSequenceUtil.__make_calibration_filename(sequence_dir))
+        camera_params.save(RGBDSequenceUtil.make_calibration_filename(sequence_dir))
 
     @staticmethod
     def save_frame(frame_idx: int, sequence_dir: str, colour_image: np.ndarray,
@@ -58,7 +68,7 @@ class RGBDSequenceUtil:
 
         # Save the camera intrinsics into the central file (if they've been provided).
         if colour_intrinsics is not None and depth_intrinsics is not None:
-            calib_filename = RGBDSequenceUtil.__make_calibration_filename(sequence_dir)  # type: str
+            calib_filename = RGBDSequenceUtil.make_calibration_filename(sequence_dir)  # type: str
             if not os.path.exists(calib_filename):
                 colour_image_size = (colour_image.shape[1], colour_image.shape[0])  # type: Tuple[int, int]
                 depth_image_size = (depth_image.shape[1], depth_image.shape[0])     # type: Tuple[int, int]
@@ -83,7 +93,7 @@ class RGBDSequenceUtil:
         :param sequence_dir:    The sequence directory.
         :return:                The camera parameters, if possible, or None otherwise.
         """
-        return CameraParameters.try_load(RGBDSequenceUtil.__make_calibration_filename(sequence_dir))
+        return CameraParameters.try_load(RGBDSequenceUtil.make_calibration_filename(sequence_dir))
 
     @staticmethod
     def try_load_frame(frame_idx: int, sequence_dir: str) -> Optional[Dict[str, Any]]:
@@ -117,15 +127,3 @@ class RGBDSequenceUtil:
             "depth_image": ImageUtil.load_depth_image(depth_filename),
             "world_from_camera": PoseUtil.load_pose(pose_filename)
         }
-
-    # PRIVATE STATIC METHODS
-
-    @staticmethod
-    def __make_calibration_filename(sequence_dir: str) -> str:
-        """
-        Make the name of the file containing the camera parameters for a sequence.
-
-        :param sequence_dir:    The sequence directory.
-        :return:                The name of the file containing the camera parameters for the sequence.
-        """
-        return os.path.join(sequence_dir, "calib.json")
