@@ -4,11 +4,13 @@ import os
 
 from typing import Any, Dict, Optional, Tuple
 
-from smg.utility import CameraParameters, ImageUtil, PoseUtil
+from .camera_parameters import CameraParameters
+from .image_util import ImageUtil
+from .pose_util import PoseUtil
 
 
-class RGBDSequenceUtil:
-    """Utility functions relating to RGB-D sequences."""
+class SequenceUtil:
+    """Utility functions relating to sequences."""
 
     # PUBLIC STATIC METHODS
 
@@ -23,11 +25,11 @@ class RGBDSequenceUtil:
         return os.path.join(sequence_dir, "calib.json")
 
     @staticmethod
-    def save_calibration(sequence_dir: str, colour_image_size: Tuple[int, int], depth_image_size: Tuple[int, int],
-                         colour_intrinsics: Tuple[float, float, float, float],
-                         depth_intrinsics: Tuple[float, float, float, float]) -> None:
+    def save_rgbd_calibration(sequence_dir: str, colour_image_size: Tuple[int, int], depth_image_size: Tuple[int, int],
+                              colour_intrinsics: Tuple[float, float, float, float],
+                              depth_intrinsics: Tuple[float, float, float, float]) -> None:
         """
-        Save the parameters of the colour and depth cameras used to capture a sequence to disk.
+        Save to disk the parameters of the colour and depth cameras used to capture an RGB-D sequence.
 
         :param sequence_dir:        The sequence directory.
         :param colour_image_size:   The size of the images captured by the colour camera, as a (width, height) tuple.
@@ -38,15 +40,15 @@ class RGBDSequenceUtil:
         camera_params = CameraParameters()  # type: CameraParameters
         camera_params.set("colour", *colour_image_size, *colour_intrinsics)
         camera_params.set("depth", *depth_image_size, *depth_intrinsics)
-        camera_params.save(RGBDSequenceUtil.make_calibration_filename(sequence_dir))
+        camera_params.save(SequenceUtil.make_calibration_filename(sequence_dir))
 
     @staticmethod
-    def save_frame(frame_idx: int, sequence_dir: str, colour_image: np.ndarray,
-                   depth_image: np.ndarray, world_from_camera: np.ndarray, *,
-                   colour_intrinsics: Optional[Tuple[float, float, float, float]] = None,
-                   depth_intrinsics: Optional[Tuple[float, float, float, float]] = None) -> None:
+    def save_rgbd_frame(frame_idx: int, sequence_dir: str, colour_image: np.ndarray,
+                        depth_image: np.ndarray, world_from_camera: np.ndarray, *,
+                        colour_intrinsics: Optional[Tuple[float, float, float, float]] = None,
+                        depth_intrinsics: Optional[Tuple[float, float, float, float]] = None) -> None:
         """
-        Save an RGB-D frame from a sequence to disk.
+        Save a frame from an RGB-D sequence to disk.
 
         .. note::
             The colour and depth cameras are assumed to have the same pose.
@@ -68,11 +70,11 @@ class RGBDSequenceUtil:
 
         # Save the camera intrinsics into the central file (if they've been provided).
         if colour_intrinsics is not None and depth_intrinsics is not None:
-            calib_filename = RGBDSequenceUtil.make_calibration_filename(sequence_dir)  # type: str
+            calib_filename = SequenceUtil.make_calibration_filename(sequence_dir)   # type: str
             if not os.path.exists(calib_filename):
                 colour_image_size = (colour_image.shape[1], colour_image.shape[0])  # type: Tuple[int, int]
                 depth_image_size = (depth_image.shape[1], depth_image.shape[0])     # type: Tuple[int, int]
-                RGBDSequenceUtil.save_calibration(
+                SequenceUtil.save_rgbd_calibration(
                     sequence_dir, colour_image_size, depth_image_size, colour_intrinsics, depth_intrinsics
                 )
 
@@ -88,17 +90,17 @@ class RGBDSequenceUtil:
     @staticmethod
     def try_load_calibration(sequence_dir: str) -> Optional[CameraParameters]:
         """
-        Try to load the parameters of the colour and depth cameras that were used to capture a sequence.
+        Try to load the parameters of the cameras that were used to capture a sequence.
 
         :param sequence_dir:    The sequence directory.
         :return:                The camera parameters, if possible, or None otherwise.
         """
-        return CameraParameters.try_load(RGBDSequenceUtil.make_calibration_filename(sequence_dir))
+        return CameraParameters.try_load(SequenceUtil.make_calibration_filename(sequence_dir))
 
     @staticmethod
-    def try_load_frame(frame_idx: int, sequence_dir: str) -> Optional[Dict[str, Any]]:
+    def try_load_rgbd_frame(frame_idx: int, sequence_dir: str) -> Optional[Dict[str, Any]]:
         """
-        Try to load an RGB-D frame from a sequence.
+        Try to load a frame from an RGB-D sequence.
 
         .. note::
             The RGB-D frame is returned as a mapping from strings to pieces of data:
