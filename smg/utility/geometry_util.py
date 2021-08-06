@@ -157,7 +157,7 @@ class GeometryUtil:
         :return:            The closest point on the half-ray to the specified point.
         """
         direction = vg.normalize(direction)
-        t: float = np.dot(point - start, direction)
+        t = np.dot(point - start, direction)  # type: float
         return start + t * direction if t > 0 else start
 
     @staticmethod

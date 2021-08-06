@@ -103,13 +103,13 @@ class DepthImageProcessor:
 
         if cy < depth_image.shape[0] and cx < depth_image.shape[1]:
             # Get the depth of the current pixel.
-            cdepth: float = depth_image[cy, cx]
+            cdepth = depth_image[cy, cx]  # type: float
 
             # For each potential neighbour of the current pixel:
-            k_squared: int = 25
-            k: int = int(math.sqrt(float(k_squared)))
-            centre: int = k_squared // 2
-            half_k: int = k // 2
+            k_squared = 25                        # type: int
+            k = int(math.sqrt(float(k_squared)))  # type: int
+            centre = k_squared // 2               # type: int
+            half_k = k // 2                       # type: int
 
             for i in range(k_squared):
                 dy, dx = divmod(i, k)
