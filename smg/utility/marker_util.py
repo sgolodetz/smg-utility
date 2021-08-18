@@ -20,7 +20,7 @@ class MarkerUtil:
         .. note::
             The ArUco marker I use is 14.1cm across, which is why the default half-width is set to 7.05cm.
 
-        :param marker_positions:    The positions of the marker's corners in S (where known)
+        :param marker_positions:    The positions of the marker's corners in S (where known).
         :param half_width:          Half the width of the marker (in m).
         :return:                    The transformation from S to M, if possible, or None otherwise.
         """
