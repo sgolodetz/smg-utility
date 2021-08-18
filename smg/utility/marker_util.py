@@ -6,7 +6,7 @@ from .geometry_util import GeometryUtil
 
 
 class MarkerUtil:
-    """Utility functions to calculate the transformations between various different spaces based on a marker."""
+    """Utility functions to calculate transformations between different spaces based on a marker."""
 
     # PUBLIC STATIC METHODS
 
