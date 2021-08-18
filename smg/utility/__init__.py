@@ -4,6 +4,7 @@ from .dual_number import DualNumber
 from .fiducial_util import FiducialUtil
 from .geometry_util import GeometryUtil
 from .image_util import ImageUtil
+from .marker_util import MarkerUtil
 from .numba_util import NumbaUtil
 from .pooled_queue import PooledQueue
 from .pose_util import PoseUtil
