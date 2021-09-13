@@ -15,10 +15,12 @@ setup(
     packages=find_packages(include=["smg.utility", "smg.utility.*"]),
     include_package_data=True,
     install_requires=[
+        "matplotlib",
         "numba",
         "numpy",
         "opencv-contrib-python==3.4.2.16",
-        "scipy"
+        "scipy",
+        "vg"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
