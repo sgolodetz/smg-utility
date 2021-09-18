@@ -5,6 +5,7 @@ import numpy as np
 from numba import cuda
 from typing import Dict, Optional, Tuple
 
+from .geometry_util import GeometryUtil
 from .numba_util import NumbaUtil
 
 
@@ -12,6 +13,31 @@ class DepthImageProcessor:
     """Utility functions for post-processing depth images."""
 
     # PUBLIC STATIC METHODS
+
+    @staticmethod
+    def apply_temporal_filter(current_depth_image: np.ndarray, current_w_t_c: np.ndarray,
+                              previous_depth_image: np.ndarray, previous_w_t_c: np.ndarray,
+                              intrinsics: Tuple[float, float, float, float], *, debug: bool = False) -> np.ndarray:
+        # TODO Tidy up and comment this.
+        selection_image: np.ndarray = GeometryUtil.find_reprojection_correspondences(
+            current_depth_image, current_w_t_c, previous_w_t_c, intrinsics
+        )
+
+        warped_depth_image: np.ndarray = GeometryUtil.select_pixels_from(previous_depth_image, selection_image)
+        warped_depth_image = np.where(current_depth_image > 0.0, warped_depth_image, 0.0)
+
+        depth_diff_image: np.ndarray = np.fabs(warped_depth_image - current_depth_image)
+
+        filtered_depth_image: np.ndarray = np.where(warped_depth_image > 0.0, current_depth_image, 0.0)
+        filtered_depth_image = np.where(depth_diff_image <= 0.2, filtered_depth_image, 0.0)
+
+        if debug:
+            cv2.imshow("Unfiltered Depth Image", current_depth_image / 5)
+            cv2.imshow("Warped Depth Image", warped_depth_image / 5)
+            cv2.imshow("Depth Difference Image", depth_diff_image)
+            cv2.waitKey(1)
+
+        return filtered_depth_image
 
     @staticmethod
     def postprocess_depth_image(depth_image: np.ndarray, *, max_depth: float, max_depth_difference: float,
