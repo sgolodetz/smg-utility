@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 
 
 class MonocularDepthEstimator(ABC):
-    """TODO"""
+    """The interface for a monocular depth estimator."""
 
     # PUBLIC ABSTRACT METHODS
 

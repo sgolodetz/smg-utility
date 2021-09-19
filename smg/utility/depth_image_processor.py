@@ -104,9 +104,9 @@ class DepthImageProcessor:
             we perform on individual depth images.
 
         :param current_depth_image:     The current depth image.
-        :param current_w_t_c:           The current camera pose (as a transform from camera to world space).
+        :param current_w_t_c:           The current camera pose (as a camera -> world transform).
         :param previous_depth_image:    The previous depth image.
-        :param previous_w_t_c:          The previous camera pose (as a transform from camera to world space).
+        :param previous_w_t_c:          The previous camera pose (as a camera -> world transform).
         :param intrinsics:              The camera intrinsics, as an (fx, fy, cx, cy) tuple.
         :param debug:                   Whether to show the internal images to aid debugging.
         :param depth_diff_threshold:    The threshold (in m) defining what's meant by "sufficiently" close to the
