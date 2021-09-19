@@ -5,6 +5,7 @@ from .fiducial_util import FiducialUtil
 from .geometry_util import GeometryUtil
 from .image_util import ImageUtil
 from .marker_util import MarkerUtil
+from .monocular_depth_estimator import MonocularDepthEstimator
 from .numba_util import NumbaUtil
 from .pooled_queue import PooledQueue
 from .pose_util import PoseUtil
