@@ -22,9 +22,7 @@ class DepthImageProcessor:
         selection_image: np.ndarray = GeometryUtil.find_reprojection_correspondences(
             current_depth_image, current_w_t_c, previous_w_t_c, intrinsics
         )
-
         warped_depth_image: np.ndarray = GeometryUtil.select_pixels_from(previous_depth_image, selection_image)
-        warped_depth_image = np.where(current_depth_image > 0.0, warped_depth_image, 0.0)
 
         depth_diff_image: np.ndarray = np.fabs(warped_depth_image - current_depth_image)
 

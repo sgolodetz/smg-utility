@@ -86,8 +86,9 @@ class GeometryUtil:
         yl = np.array(range(height))
         al = np.tile((xl - cx) / fx, height).reshape(height, width) * depth_image
         bl = np.transpose(np.tile((yl - cy) / fy, width).reshape(width, height)) * depth_image
+        cl = (depth_image > 0.0).astype(np.uint8)
         for i in range(3):
-            ws_points[:, :, i] = pose[i, 0] * al + pose[i, 1] * bl + pose[i, 2] * depth_image + pose[i, 3]
+            ws_points[:, :, i] = pose[i, 0] * al + pose[i, 1] * bl + pose[i, 2] * depth_image + pose[i, 3] * cl
         return ws_points
 
     @staticmethod
