@@ -17,7 +17,8 @@ class DepthImageProcessor:
     @staticmethod
     def apply_temporal_filter(current_depth_image: np.ndarray, current_w_t_c: np.ndarray,
                               previous_depth_image: np.ndarray, previous_w_t_c: np.ndarray,
-                              intrinsics: Tuple[float, float, float, float], *, debug: bool = False) -> np.ndarray:
+                              intrinsics: Tuple[float, float, float, float], *,
+                              debug: bool = False, depth_diff_threshold: float) -> np.ndarray:
         # TODO Tidy up and comment this.
         selection_image: np.ndarray = GeometryUtil.find_reprojection_correspondences(
             current_depth_image, current_w_t_c, previous_w_t_c, intrinsics
@@ -27,7 +28,7 @@ class DepthImageProcessor:
         depth_diff_image: np.ndarray = np.fabs(warped_depth_image - current_depth_image)
 
         filtered_depth_image: np.ndarray = np.where(warped_depth_image > 0.0, current_depth_image, 0.0)
-        filtered_depth_image = np.where(depth_diff_image <= 0.2, filtered_depth_image, 0.0)
+        filtered_depth_image = np.where(depth_diff_image <= depth_diff_threshold, filtered_depth_image, 0.0)
 
         if debug:
             cv2.imshow("Unfiltered Depth Image", current_depth_image / 5)
