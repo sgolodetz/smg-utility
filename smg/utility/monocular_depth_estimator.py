@@ -10,26 +10,15 @@ class MonocularDepthEstimator(ABC):
     # PUBLIC ABSTRACT METHODS
 
     @abstractmethod
-    def estimate_depth(self, colour_image: np.ndarray, tracker_w_t_c: np.ndarray) -> Optional[np.ndarray]:
+    def estimate_depth(self, colour_image: np.ndarray, tracker_w_t_c: np.ndarray, *, postprocess: bool = False) \
+            -> Optional[np.ndarray]:
         """
         Try to estimate a depth image corresponding to the colour image passed in.
 
         :param colour_image:    The colour image.
         :param tracker_w_t_c:   The camera pose corresponding to the colour image (as a camera -> world transform).
+        :param postprocess:     Whether or not to apply any optional post-processing to the depth image.
         :return:                The estimated depth image, if possible, or None otherwise.
-        """
-        pass
-
-    @abstractmethod
-    def postprocess_depth_image(self, depth_image: np.ndarray) -> Optional[np.ndarray]:
-        """
-        Try to post-process the specified depth image to reduce the amount of noise it contains.
-
-        .. note::
-            This function will return None if the input depth image does not have depth values for enough pixels.
-
-        :param depth_image: The input depth image.
-        :return:            The post-processed depth image, if possible, or None otherwise.
         """
         pass
 
