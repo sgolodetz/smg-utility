@@ -26,19 +26,19 @@ class MarkerUtil:
         """
         # If the positions in S of all of the marker's corners are known, estimate the transformation.
         if all(key in marker_positions for key in ["0_0", "0_1", "0_2", "0_3"]):
-            p: np.ndarray = np.column_stack([
+            p = np.column_stack([
                 marker_positions["0_0"],
                 marker_positions["0_1"],
                 marker_positions["0_2"],
                 marker_positions["0_3"]
-            ])
+            ])  # type: np.ndarray
 
-            q: np.ndarray = np.array([
+            q = np.array([
                 [-half_width, -half_width, 0],
                 [half_width, -half_width, 0],
                 [half_width, half_width, 0],
                 [-half_width, half_width, 0]
-            ]).transpose()
+            ]).transpose()  # type: np.ndarray
 
             return GeometryUtil.estimate_rigid_transform(p, q)
 
@@ -59,19 +59,19 @@ class MarkerUtil:
         """
         # If the positions in both S and T of all of the marker's corners are known, estimate the transformation.
         if all(key in marker_positions_s and key in marker_positions_t for key in ["0_0", "0_1", "0_2", "0_3"]):
-            p: np.ndarray = np.column_stack([
+            p = np.column_stack([
                 marker_positions_s["0_0"],
                 marker_positions_s["0_1"],
                 marker_positions_s["0_2"],
                 marker_positions_s["0_3"]
-            ])
+            ])  # type: np.ndarray
 
-            q: np.ndarray = np.column_stack([
+            q = np.column_stack([
                 marker_positions_t["0_0"],
                 marker_positions_t["0_1"],
                 marker_positions_t["0_2"],
                 marker_positions_t["0_3"]
-            ])
+            ])  # type: np.ndarray
 
             return GeometryUtil.estimate_rigid_transform(p, q)
 
