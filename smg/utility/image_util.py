@@ -132,11 +132,16 @@ class ImageUtil:
         """
         Convert a floating-point depth image to an unsigned short one.
 
+        .. note::
+            If any scaled depths are too big to fit in an unsigned short, they will be set to zero.
+
         :param depth_image:         The floating-point depth image.
         :param depth_scale_factor:  The factor by which to multiply the depths during the conversion.
         :return:                    The unsigned short depth image.
         """
-        return (depth_image * depth_scale_factor).astype(np.uint16)
+        output_depth_image: np.ndarray = depth_image * depth_scale_factor
+        output_depth_image = np.where(output_depth_image <= np.iinfo(np.uint16).max, output_depth_image, 0.0)
+        return output_depth_image.astype(np.uint16)
 
     # PRIVATE STATIC CUDA KERNELS
 
