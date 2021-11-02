@@ -286,7 +286,7 @@ class GeometryUtil:
     @staticmethod
     def intrinsics_to_tuple(intrinsics: np.ndarray) -> Tuple[float, float, float, float]:
         """
-        Convert camera intrinsics expressed as a 3x3 matrix form to an (fx,fy,cx,cy) tuple.
+        Convert camera intrinsics expressed as a 3x3 matrix to an (fx,fy,cx,cy) tuple.
 
         :param intrinsics:  The camera intrinsics in matrix form.
         :return:            The camera intrinsics in tuple form.
