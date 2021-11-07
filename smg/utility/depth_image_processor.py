@@ -113,6 +113,9 @@ class DepthImageProcessor:
                                         current depth (see above).
         :return:                        The filtered version of the current depth image.
         """
+        current_world_points = GeometryUtil.compute_world_points_image_fast(current_depth_image, current_w_t_c, intrinsics)
+        previous_world_points = GeometryUtil.compute_world_points_image_fast(previous_depth_image, previous_w_t_c, intrinsics)
+
         # Reproject the previous depth image into the current image plane.
         selection_image = GeometryUtil.find_reprojection_correspondences(
             current_depth_image, current_w_t_c, previous_w_t_c, intrinsics
@@ -122,21 +125,36 @@ class DepthImageProcessor:
             previous_depth_image, selection_image
         )  # type: np.ndarray
 
+        reprojected_world_points = GeometryUtil.select_pixels_from(
+            previous_world_points, selection_image
+        )
+
+        diff_image = np.linalg.norm(reprojected_world_points - current_world_points, axis=2)
+        cv2.imshow("Diff Image", diff_image)
+        cv2.waitKey(1)
+
         # Compute absolute differences between the reprojected depths from the previous frame and the current depths.
-        depth_diff_image = np.fabs(reprojected_depth_image - current_depth_image)  # type: np.ndarray
+        # depth_diff_image = np.fabs(reprojected_depth_image - current_depth_image)  # type: np.ndarray
+        #
+        # cv2.imshow("Depth Diff Image", depth_diff_image)
+        # cv2.waitKey(1)
 
         # Make a filtered version of the current depth image by removing any pixel that either does not have a
         # corresponding pixel in the previous depth image at all, or else does not have one with a depth that's
         # close to the current depth.
+        # filtered_depth_image = np.where(
+        #     (reprojected_depth_image > 0.0) & (depth_diff_image <= depth_diff_threshold), current_depth_image, 0.0
+        # )  # type: np.ndarray
+
         filtered_depth_image = np.where(
-            (reprojected_depth_image > 0.0) & (depth_diff_image <= depth_diff_threshold), current_depth_image, 0.0
-        )  # type: np.ndarray
+            (reprojected_depth_image > 0.0) & (diff_image <= depth_diff_threshold), current_depth_image, 0.0
+        )
 
         # If we're debugging, show the internal images.
         if debug:
             cv2.imshow("Unfiltered Depth Image", current_depth_image / 5)
             cv2.imshow("Warped Depth Image", reprojected_depth_image / 5)
-            cv2.imshow("Depth Difference Image", depth_diff_image)
+            # cv2.imshow("Depth Difference Image", depth_diff_image)
             cv2.waitKey(1)
 
         return filtered_depth_image
