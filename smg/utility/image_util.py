@@ -139,7 +139,7 @@ class ImageUtil:
         :param depth_scale_factor:  The factor by which to multiply the depths during the conversion.
         :return:                    The unsigned short depth image.
         """
-        output_depth_image: np.ndarray = depth_image * depth_scale_factor
+        output_depth_image = depth_image * depth_scale_factor  # type: np.ndarray
         output_depth_image = np.where(output_depth_image <= np.iinfo(np.uint16).max, output_depth_image, 0.0)
         return output_depth_image.astype(np.uint16)
 
