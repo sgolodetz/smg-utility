@@ -34,10 +34,10 @@ class ImageUtil:
         :param gt_mask: The ground-truth binary mask.
         :return:        The IoG for the binary mask, provided the ground-truth is non-empty, or None otherwise.
         """
-        mask_i: np.ndarray = np.logical_and(mask, gt_mask).astype(np.uint8) * 255
+        mask_i = np.logical_and(mask, gt_mask).astype(np.uint8) * 255  # type: np.ndarray
 
-        i: int = np.count_nonzero(mask_i)
-        g: int = np.count_nonzero(gt_mask)
+        i = np.count_nonzero(mask_i)   # type: int
+        g = np.count_nonzero(gt_mask)  # type: int
 
         return i / g if g > 0 else None
 
@@ -52,15 +52,15 @@ class ImageUtil:
         :return:        The IoU of the two masks, provided their union is non-empty, or None otherwise.
         """
         # Note: Faster implementations of this are possible if necessary. This implementation is focused on clarity.
-        mask_i: np.ndarray = np.logical_and(mask1, mask2).astype(np.uint8) * 255
-        mask_u: np.ndarray = np.logical_or(mask1, mask2).astype(np.uint8) * 255
+        mask_i = np.logical_and(mask1, mask2).astype(np.uint8) * 255  # type: np.ndarray
+        mask_u = np.logical_or(mask1, mask2).astype(np.uint8) * 255   # type: np.ndarray
 
         if debug:
             cv2.imshow("Intersection", mask_i)
             cv2.imshow("Union", mask_u)
 
-        i: int = np.count_nonzero(mask_i)
-        u: int = np.count_nonzero(mask_u)
+        i = np.count_nonzero(mask_i)  # type: int
+        u = np.count_nonzero(mask_u)  # type: int
 
         return i / u if u > 0 else None
 
