@@ -22,6 +22,49 @@ class ImageUtil:
     # PUBLIC STATIC METHODS
 
     @staticmethod
+    def calculate_iog(mask: np.ndarray, gt_mask: np.ndarray) -> Optional[float]:
+        """
+        Try to calculate the intersection-over-ground-truth (IoG) metric for a binary mask.
+
+        .. note::
+            An alternative name for this metric might be "ground-truth coverage ratio". I'm not sure what the canonical
+            name is, but I'll change the name later if I find out.
+
+        :param mask:    The binary mask whose IoG we want to calculate.
+        :param gt_mask: The ground-truth binary mask.
+        :return:        The IoG for the binary mask, provided the ground-truth is non-empty, or None otherwise.
+        """
+        mask_i = np.logical_and(mask, gt_mask).astype(np.uint8) * 255  # type: np.ndarray
+
+        i = np.count_nonzero(mask_i)   # type: int
+        g = np.count_nonzero(gt_mask)  # type: int
+
+        return i / g if g > 0 else None
+
+    @staticmethod
+    def calculate_iou(mask1: np.ndarray, mask2: np.ndarray, *, debug: bool = False) -> Optional[float]:
+        """
+        Try to calculate the intersection-over-union (IoU) between two binary masks.
+
+        :param mask1:   The first binary mask.
+        :param mask2:   The second binary mask.
+        :param debug:   Whether to show the intersection and union masks for debugging purposes.
+        :return:        The IoU of the two masks, provided their union is non-empty, or None otherwise.
+        """
+        # Note: Faster implementations of this are possible if necessary. This implementation is focused on clarity.
+        mask_i = np.logical_and(mask1, mask2).astype(np.uint8) * 255  # type: np.ndarray
+        mask_u = np.logical_or(mask1, mask2).astype(np.uint8) * 255   # type: np.ndarray
+
+        if debug:
+            cv2.imshow("Intersection", mask_i)
+            cv2.imshow("Union", mask_u)
+
+        i = np.count_nonzero(mask_i)  # type: int
+        u = np.count_nonzero(mask_u)  # type: int
+
+        return i / u if u > 0 else None
+
+    @staticmethod
     def colourise_segmentation(segmentation: np.ndarray, *, may_load_default_palette: bool = True,
                                palette: Optional[np.ndarray] = None) -> np.ndarray:
         """
