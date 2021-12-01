@@ -113,6 +113,58 @@ class DepthImageProcessor:
                                         current depth (see above).
         :return:                        The filtered version of the current depth image.
         """
+        # Reproject the previous depth image into the current image plane.
+        selection_image = GeometryUtil.find_reprojection_correspondences(
+            current_depth_image, current_w_t_c, previous_w_t_c, intrinsics
+        )  # type: np.ndarray
+
+        reprojected_depth_image = GeometryUtil.select_pixels_from(
+            previous_depth_image, selection_image
+        )  # type: np.ndarray
+
+        # Compute absolute differences between the reprojected depths from the previous frame and the current depths.
+        depth_diff_image = np.fabs(reprojected_depth_image - current_depth_image)  # type: np.ndarray
+
+        # Make a filtered version of the current depth image by removing any pixel that either does not have a
+        # corresponding pixel in the previous depth image at all, or else does not have one with a depth that's
+        # close to the current depth.
+        filtered_depth_image = np.where(
+            (reprojected_depth_image > 0.0) & (depth_diff_image <= depth_diff_threshold), current_depth_image, 0.0
+        )  # type: np.ndarray
+
+        # If we're debugging, show the internal images.
+        if debug:
+            cv2.imshow("Unfiltered Depth Image", current_depth_image / 5)
+            cv2.imshow("Warped Depth Image", reprojected_depth_image / 5)
+            cv2.imshow("Depth Difference Image", depth_diff_image)
+            cv2.waitKey(1)
+
+        return filtered_depth_image
+
+    @staticmethod
+    def remove_temporal_inconsistencies_new(current_depth_image: np.ndarray, current_w_t_c: np.ndarray,
+                                            previous_depth_image: np.ndarray, previous_w_t_c: np.ndarray,
+                                            intrinsics: Tuple[float, float, float, float], *,
+                                            debug: bool = False, depth_diff_threshold: float) -> np.ndarray:
+        """
+        Make a filtered version of the current depth image by removing any pixel that either does not have a
+        corresponding pixel in the previous depth image at all, or else does not have one with a depth that's
+        sufficiently close to the current depth.
+
+        .. note::
+            Since this makes use of the previous frame, it's deliberately not part of the normal post-processing
+            we perform on individual depth images.
+
+        :param current_depth_image:     The current depth image.
+        :param current_w_t_c:           The current camera pose (as a camera -> world transform).
+        :param previous_depth_image:    The previous depth image.
+        :param previous_w_t_c:          The previous camera pose (as a camera -> world transform).
+        :param intrinsics:              The camera intrinsics, as an (fx, fy, cx, cy) tuple.
+        :param debug:                   Whether to show the internal images to aid debugging.
+        :param depth_diff_threshold:    The threshold (in m) defining what's meant by "sufficiently" close to the
+                                        current depth (see above).
+        :return:                        The filtered version of the current depth image.
+        """
         current_world_points = GeometryUtil.compute_world_points_image_fast(current_depth_image, current_w_t_c, intrinsics)
         previous_world_points = GeometryUtil.compute_world_points_image_fast(previous_depth_image, previous_w_t_c, intrinsics)
 
