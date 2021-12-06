@@ -90,14 +90,16 @@ class DepthImageProcessor:
         return depth_image, segmentation
 
     @staticmethod
-    def remove_temporal_inconsistencies(current_depth_image: np.ndarray, current_w_t_c: np.ndarray,
-                                        previous_depth_image: np.ndarray, previous_w_t_c: np.ndarray,
-                                        intrinsics: Tuple[float, float, float, float], *,
-                                        debug: bool = False, depth_diff_threshold: float) -> np.ndarray:
+    def remove_temporal_inconsistencies(
+        current_depth_image: np.ndarray, current_w_t_c: np.ndarray, current_world_points: np.ndarray,
+        previous_depth_image: np.ndarray, previous_w_t_c: np.ndarray, previous_world_points: np.ndarray,
+        intrinsics: Tuple[float, float, float, float], *,
+        debug: bool = False, distance_threshold: float
+    ) -> np.ndarray:
         """
         Make a filtered version of the current depth image by removing any pixel that either does not have a
-        corresponding pixel in the previous depth image at all, or else does not have one with a depth that's
-        sufficiently close to the current depth.
+        corresponding pixel in the previous world-space points image at all, or else does not have one whose
+        world-space point is sufficiently close to the current world-space point.
 
         .. note::
             Since this makes use of the previous frame, it's deliberately not part of the normal post-processing
@@ -105,15 +107,17 @@ class DepthImageProcessor:
 
         :param current_depth_image:     The current depth image.
         :param current_w_t_c:           The current camera pose (as a camera -> world transform).
+        :param current_world_points:    The current world-space points image.
         :param previous_depth_image:    The previous depth image.
         :param previous_w_t_c:          The previous camera pose (as a camera -> world transform).
+        :param previous_world_points:   The previous world-space points image.
         :param intrinsics:              The camera intrinsics, as an (fx, fy, cx, cy) tuple.
         :param debug:                   Whether to show the internal images to aid debugging.
-        :param depth_diff_threshold:    The threshold (in m) defining what's meant by "sufficiently" close to the
-                                        current depth (see above).
+        :param distance_threshold:      The threshold (in m) defining what's meant by "sufficiently" close to the
+                                        current world-space point (see above).
         :return:                        The filtered version of the current depth image.
         """
-        # Reproject the previous depth image into the current image plane.
+        # Reproject the previous depth image and world-space points image into the current image plane.
         selection_image = GeometryUtil.find_reprojection_correspondences(
             current_depth_image, current_w_t_c, previous_w_t_c, intrinsics
         )  # type: np.ndarray
@@ -122,21 +126,26 @@ class DepthImageProcessor:
             previous_depth_image, selection_image
         )  # type: np.ndarray
 
-        # Compute absolute differences between the reprojected depths from the previous frame and the current depths.
-        depth_diff_image = np.fabs(reprojected_depth_image - current_depth_image)  # type: np.ndarray
+        reprojected_world_points = GeometryUtil.select_pixels_from(
+            previous_world_points, selection_image
+        )  # type: np.ndarray
+
+        # Compute the distances between the reprojected world-space points from the previous frame and the current
+        # world-space points.
+        distance_image = np.linalg.norm(reprojected_world_points - current_world_points, axis=2)  # type: np.ndarray
 
         # Make a filtered version of the current depth image by removing any pixel that either does not have a
-        # corresponding pixel in the previous depth image at all, or else does not have one with a depth that's
-        # close to the current depth.
+        # corresponding pixel in the previous world-space points image at all, or else does not have one whose
+        # world-space point is close to the current world-space point.
         filtered_depth_image = np.where(
-            (reprojected_depth_image > 0.0) & (depth_diff_image <= depth_diff_threshold), current_depth_image, 0.0
+            (reprojected_depth_image > 0.0) & (distance_image <= distance_threshold), current_depth_image, 0.0
         )  # type: np.ndarray
 
         # If we're debugging, show the internal images.
         if debug:
             cv2.imshow("Unfiltered Depth Image", current_depth_image / 5)
             cv2.imshow("Warped Depth Image", reprojected_depth_image / 5)
-            cv2.imshow("Depth Difference Image", depth_diff_image)
+            cv2.imshow("World-Space Points Distance Image", distance_image)
             cv2.waitKey(1)
 
         return filtered_depth_image
