@@ -90,10 +90,12 @@ class DepthImageProcessor:
         return depth_image, segmentation
 
     @staticmethod
-    def remove_temporal_inconsistencies(current_depth_image: np.ndarray, current_w_t_c: np.ndarray,
-                                        previous_depth_image: np.ndarray, previous_w_t_c: np.ndarray,
-                                        intrinsics: Tuple[float, float, float, float], *,
-                                        debug: bool = False, distance_threshold: float) -> np.ndarray:
+    def remove_temporal_inconsistencies(
+        current_depth_image: np.ndarray, current_w_t_c: np.ndarray, current_world_points: np.ndarray,
+        previous_depth_image: np.ndarray, previous_w_t_c: np.ndarray, previous_world_points: np.ndarray,
+        intrinsics: Tuple[float, float, float, float], *,
+        debug: bool = False, distance_threshold: float
+    ) -> np.ndarray:
         """
         Make a filtered version of the current depth image by removing any pixel that either does not have a
         corresponding pixel in the previous world-space points image at all, or else does not have one whose
@@ -105,24 +107,16 @@ class DepthImageProcessor:
 
         :param current_depth_image:     The current depth image.
         :param current_w_t_c:           The current camera pose (as a camera -> world transform).
+        :param current_world_points:    The current world-space points image.
         :param previous_depth_image:    The previous depth image.
         :param previous_w_t_c:          The previous camera pose (as a camera -> world transform).
+        :param previous_world_points:   The previous world-space points image.
         :param intrinsics:              The camera intrinsics, as an (fx, fy, cx, cy) tuple.
         :param debug:                   Whether to show the internal images to aid debugging.
         :param distance_threshold:      The threshold (in m) defining what's meant by "sufficiently" close to the
                                         current world-space point (see above).
         :return:                        The filtered version of the current depth image.
         """
-        # Compute the current and previous world-space points images.
-        # FIXME: The previous world-space points image could be stored and reused.
-        current_world_points = GeometryUtil.compute_world_points_image_fast(
-            current_depth_image, current_w_t_c, intrinsics
-        )  # type: np.ndarray
-
-        previous_world_points = GeometryUtil.compute_world_points_image_fast(
-            previous_depth_image, previous_w_t_c, intrinsics
-        )  # type: np.ndarray
-
         # Reproject the previous depth image and world-space points image into the current image plane.
         selection_image = GeometryUtil.find_reprojection_correspondences(
             current_depth_image, current_w_t_c, previous_w_t_c, intrinsics
