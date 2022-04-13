@@ -92,6 +92,23 @@ class GeometryUtil:
         return ws_points
 
     @staticmethod
+    def distance_to_line_segment(point, start, end) -> float:
+        """
+        Calculate the distance between the specified point and the closest point to it on a line segment.
+
+        :param point:   The specified point.
+        :param start:   One endpoint of the line segment.
+        :param end:     The other endpoint of the line segment.
+        :return:        The distance between the specified point and the closest point to it on the line segment.
+        """
+        point = np.array(point)  # type: np.ndarray
+        start = np.array(start)  # type: np.ndarray
+        end = np.array(end)      # type: np.ndarray
+
+        closest_point: np.ndarray = GeometryUtil.find_closest_point_on_line_segment(point, start, end)
+        return np.linalg.norm(closest_point - point)
+
+    @staticmethod
     def estimate_rigid_transform(p: np.ndarray, q: np.ndarray) -> np.ndarray:
         """
         Estimate the rigid body transform between two sets of corresponding 3D points (using the Kabsch algorithm).
@@ -148,7 +165,7 @@ class GeometryUtil:
         return m
 
     @staticmethod
-    def find_closest_point_on_half_ray(point: np.ndarray, start: np.ndarray, direction: np.ndarray) -> np.ndarray:
+    def find_closest_point_on_half_ray(point, start, direction) -> np.ndarray:
         """
         Find the closest point on a half-ray to the specified point.
 
@@ -157,9 +174,36 @@ class GeometryUtil:
         :param direction:   The direction of the half-ray.
         :return:            The closest point on the half-ray to the specified point.
         """
+        point = np.array(point)          # type: np.ndarray
+        start = np.array(start)          # type: np.ndarray
+        direction = np.array(direction)  # type: np.ndarray
+
         direction = vg.normalize(direction)
         t = np.dot(point - start, direction)  # type: float
         return start + t * direction if t > 0 else start
+
+    @staticmethod
+    def find_closest_point_on_line_segment(point, start, end) -> np.ndarray:
+        """
+        Find the closest point on a line segment to the specified point.
+
+        :param point:   The specified point.
+        :param start:   One endpoint of the line segment.
+        :param end:     The other endpoint of the line segment.
+        :return:        The closest point on the line segment to the specified point.
+        """
+        point = np.array(point)  # type: np.ndarray
+        start = np.array(start)  # type: np.ndarray
+        end = np.array(end)      # type: np.ndarray
+
+        direction = end - start                                                         # type: np.ndarray
+        t = vg.scalar_projection(point - start, direction) / np.linalg.norm(direction)  # type: float
+        if t <= 0:
+            return start
+        elif t >= 1:
+            return end
+        else:
+            return start + t * direction
 
     @staticmethod
     def find_largest_cluster(transforms: List[np.ndarray], *, rotation_threshold: float = 20 * math.pi / 180,
