@@ -92,7 +92,7 @@ class GeometryUtil:
         return ws_points
 
     @staticmethod
-    def distance_to_line_segment(point: np.ndarray, start: np.ndarray, end: np.ndarray) -> float:
+    def distance_to_line_segment(point, start, end) -> float:
         """
         Calculate the distance between the specified point and the closest point to it on a line segment.
 
@@ -101,6 +101,10 @@ class GeometryUtil:
         :param end:     The other endpoint of the line segment.
         :return:        The distance between the specified point and the closest point to it on the line segment.
         """
+        point = np.array(point)  # type: np.ndarray
+        start = np.array(start)  # type: np.ndarray
+        end = np.array(end)      # type: np.ndarray
+
         closest_point: np.ndarray = GeometryUtil.find_closest_point_on_line_segment(point, start, end)
         return np.linalg.norm(closest_point - point)
 
@@ -193,7 +197,7 @@ class GeometryUtil:
         end = np.array(end)      # type: np.ndarray
 
         direction = end - start                                                         # type: np.ndarray
-        t = np.dot(point - start, vg.normalize(direction)) / np.linalg.norm(direction)  # type: float
+        t = vg.scalar_projection(point - start, direction) / np.linalg.norm(direction)  # type: float
         if t <= 0:
             return start
         elif t >= 1:
