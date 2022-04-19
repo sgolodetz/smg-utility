@@ -196,8 +196,12 @@ class GeometryUtil:
         start = np.array(start)  # type: np.ndarray
         end = np.array(end)      # type: np.ndarray
 
-        direction = end - start                                                         # type: np.ndarray
-        t = vg.scalar_projection(point - start, direction) / np.linalg.norm(direction)  # type: float
+        direction = end - start                                                # type: np.ndarray
+        direction_length = np.linalg.norm(direction)                           # type: float
+        if direction_length <= 1e-4:
+            return start
+
+        t = vg.scalar_projection(point - start, direction) / direction_length  # type: float
         if t <= 0:
             return start
         elif t >= 1:
