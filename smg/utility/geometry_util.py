@@ -253,6 +253,30 @@ class GeometryUtil:
         return clusters[largest_cluster_index] if largest_cluster_index != -1 else None
 
     @staticmethod
+    def find_plane_intersection(start, direction, plane: Tuple[float, float, float, float]) -> Optional[np.ndarray]:
+        """
+        TODO
+
+        :param start:       TODO
+        :param direction:   TODO
+        :param plane:       TODO
+        :return:            TODO
+        """
+        # TODO: Add comments.
+        s: np.ndarray = np.array(start)
+        v: np.ndarray = np.array(direction)
+
+        a, b, c, d = plane
+        n: np.ndarray = np.array([a, b, c])
+
+        denom: float = np.dot(n, v)
+        if np.fabs(denom) <= 1e-4:
+            return None
+
+        t: float = d - np.dot(n, s) / denom
+        return s + t * v
+
+    @staticmethod
     def find_reprojection_correspondences(
         source_depth_image: np.ndarray, world_from_source: np.ndarray, world_from_target: np.ndarray,
         source_intrinsics: Tuple[float, float, float, float], *,
