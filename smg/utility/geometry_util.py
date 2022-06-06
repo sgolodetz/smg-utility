@@ -20,21 +20,24 @@ class GeometryUtil:
     @staticmethod
     def angle_between(v1: np.ndarray, v2: np.ndarray) -> Optional[float]:
         """
-        TODO
+        Try to calculate the angle (in radians) between two vectors.
 
-        :param v1:  TODO
-        :param v2:  TODO
-        :return:    TODO
+        .. note::
+            If the magnitude of either vector is too small, this will return None.
+
+        :param v1:  The first vector.
+        :param v2:  The second vector.
+        :return:    The angle (in radians) between the two vectors, if possible, or None otherwise.
         """
-        # TODO: Comment here.
-        v1_length: float = np.linalg.norm(v1)
-        v2_length: float = np.linalg.norm(v2)
+        # Calculate the magnitudes of the two vectors.
+        v1_length = np.linalg.norm(v1)  # type: float
+        v2_length = np.linalg.norm(v2)  # type: float
 
-        # TODO: Comment here.
+        # If both are long enough, calculate and return the angle between them.
         if v1_length >= 1e-4 and v2_length >= 1e-4:
             return np.arccos(np.clip(np.dot(v1, v2) / (v1_length * v2_length), -1.0, 1.0))
 
-        # TODO: Comment here.
+        # Otherwise, return None.
         else:
             return None
 
@@ -276,25 +279,24 @@ class GeometryUtil:
     @staticmethod
     def find_plane_intersection(start, direction, plane: Tuple[float, float, float, float]) -> Optional[np.ndarray]:
         """
-        TODO
+        Find the unique intersection point (if any) between a line and a plane.
 
-        :param start:       TODO
-        :param direction:   TODO
-        :param plane:       TODO
-        :return:            TODO
+        :param start:       The start point of the line.
+        :param direction:   The direction vector of the line.
+        :param plane:       The plane, as an (a,b,c,d) tuple denoting the plane ax + by + cz - d = 0.
+        :return:            The unique intersection point (if any) between the line and the plane, or None otherwise.
         """
-        # TODO: Add comments.
-        s: np.ndarray = np.array(start)
-        v: np.ndarray = np.array(direction)
+        s = np.array(start)      # type: np.ndarray
+        v = np.array(direction)  # type: np.ndarray
 
         a, b, c, d = plane
-        n: np.ndarray = np.array([a, b, c])
+        n = np.array([a, b, c])  # type: np.ndarray
 
-        denom: float = np.dot(n, v)
+        denom = np.dot(n, v)  # type: float
         if np.fabs(denom) <= 1e-4:
             return None
 
-        t: float = d - np.dot(n, s) / denom
+        t = d - np.dot(n, s) / denom  # type: float
         return s + t * v
 
     @staticmethod
