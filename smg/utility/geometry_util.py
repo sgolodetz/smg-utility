@@ -257,7 +257,7 @@ class GeometryUtil:
         largest_cluster_index = -1    # type: int
         largest_cluster_size = 0      # type: int
 
-        # For each transforms:
+        # For each transform:
         for i in range(len(transforms)):
             # Compute the cluster for the transform.
             for j in range(len(transforms)):
@@ -286,17 +286,16 @@ class GeometryUtil:
         :param plane:       The plane, as an (a,b,c,d) tuple denoting the plane ax + by + cz - d = 0.
         :return:            The unique intersection point (if any) between the line and the plane, or None otherwise.
         """
-        s = np.array(start)      # type: np.ndarray
-        v = np.array(direction)  # type: np.ndarray
+        s = np.array(start).astype(float)           # type: np.ndarray
+        v = np.array(direction).astype(float)       # type: np.ndarray
+        a, b, c, d = np.array(plane).astype(float)
+        n = np.array([a, b, c])                     # type: np.ndarray
 
-        a, b, c, d = plane
-        n = np.array([a, b, c])  # type: np.ndarray
-
-        denom = np.dot(n, v)  # type: float
+        denom = np.dot(n, v)                        # type: float
         if np.fabs(denom) <= 1e-4:
             return None
 
-        t = d - np.dot(n, s) / denom  # type: float
+        t = (d - np.dot(n, s)) / denom              # type: float
         return s + t * v
 
     @staticmethod
