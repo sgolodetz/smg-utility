@@ -18,6 +18,27 @@ class GeometryUtil:
     # PUBLIC STATIC METHODS
 
     @staticmethod
+    def angle_between(v1: np.ndarray, v2: np.ndarray) -> Optional[float]:
+        """
+        TODO
+
+        :param v1:  TODO
+        :param v2:  TODO
+        :return:    TODO
+        """
+        # TODO: Comment here.
+        v1_length: float = np.linalg.norm(v1)
+        v2_length: float = np.linalg.norm(v2)
+
+        # TODO: Comment here.
+        if v1_length >= 1e-4 and v2_length >= 1e-4:
+            return np.arccos(np.clip(np.dot(v1, v2) / (v1_length * v2_length), -1.0, 1.0))
+
+        # TODO: Comment here.
+        else:
+            return None
+
+    @staticmethod
     def apply_rigid_transform(mat4x4: np.ndarray, vec3: np.ndarray) -> np.ndarray:
         """
         Apply a rigid-body transform expressed as a 4x4 matrix to a 3D vector.
