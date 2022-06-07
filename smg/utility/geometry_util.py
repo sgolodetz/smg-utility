@@ -18,6 +18,30 @@ class GeometryUtil:
     # PUBLIC STATIC METHODS
 
     @staticmethod
+    def angle_between(v1: np.ndarray, v2: np.ndarray) -> Optional[float]:
+        """
+        Try to calculate the angle (in radians) between two vectors.
+
+        .. note::
+            If the magnitude of either vector is too small, this will return None.
+
+        :param v1:  The first vector.
+        :param v2:  The second vector.
+        :return:    The angle (in radians) between the two vectors, if possible, or None otherwise.
+        """
+        # Calculate the magnitudes of the two vectors.
+        v1_length = np.linalg.norm(v1)  # type: float
+        v2_length = np.linalg.norm(v2)  # type: float
+
+        # If both are long enough, calculate and return the angle between them.
+        if v1_length >= 1e-4 and v2_length >= 1e-4:
+            return np.arccos(np.clip(np.dot(v1, v2) / (v1_length * v2_length), -1.0, 1.0))
+
+        # Otherwise, return None.
+        else:
+            return None
+
+    @staticmethod
     def apply_rigid_transform(mat4x4: np.ndarray, vec3: np.ndarray) -> np.ndarray:
         """
         Apply a rigid-body transform expressed as a 4x4 matrix to a 3D vector.
@@ -233,7 +257,7 @@ class GeometryUtil:
         largest_cluster_index = -1    # type: int
         largest_cluster_size = 0      # type: int
 
-        # For each transforms:
+        # For each transform:
         for i in range(len(transforms)):
             # Compute the cluster for the transform.
             for j in range(len(transforms)):
@@ -251,6 +275,28 @@ class GeometryUtil:
 
         # Return the largest cluster, if there is one, or None otherwise.
         return clusters[largest_cluster_index] if largest_cluster_index != -1 else None
+
+    @staticmethod
+    def find_plane_intersection(start, direction, plane: Tuple[float, float, float, float]) -> Optional[np.ndarray]:
+        """
+        Find the unique intersection point (if any) between a line and a plane.
+
+        :param start:       The start point of the line.
+        :param direction:   The direction vector of the line.
+        :param plane:       The plane, as an (a,b,c,d) tuple denoting the plane ax + by + cz - d = 0.
+        :return:            The unique intersection point (if any) between the line and the plane, or None otherwise.
+        """
+        s = np.array(start).astype(float)           # type: np.ndarray
+        v = np.array(direction).astype(float)       # type: np.ndarray
+        a, b, c, d = np.array(plane).astype(float)
+        n = np.array([a, b, c])                     # type: np.ndarray
+
+        denom = np.dot(n, v)                        # type: float
+        if np.fabs(denom) <= 1e-4:
+            return None
+
+        t = (d - np.dot(n, s)) / denom              # type: float
+        return s + t * v
 
     @staticmethod
     def find_reprojection_correspondences(
